@@ -1,0 +1,111 @@
+.profile-gate-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 2rem;
+}
+
+.profile-gate-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 2.5rem;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  animation: fadeIn 0.3s ease;
+}
+
+.profile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.profile-item {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.profile-item:hover {
+  border-color: var(--accent-blue);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
+.pin-badge {
+  margin-left: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.create-profile-form {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.create-profile-form h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+}
+
+.recovery-key-warning {
+  background: rgba(229, 62, 62, 0.1);
+  border: 1.5px solid var(--accent-red);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.recovery-key-display {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.recovery-key-display code {
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--text-primary);
+  font-family: 'Courier New', monospace;
+}
+
+.login-form {
+  width: 100%;
+}
+
+.error-message {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(229, 62, 62, 0.1);
+  border: 1px solid var(--accent-red);
+  border-radius: 6px;
+  color: var(--accent-red);
+  font-size: 0.875rem;
+}
+

@@ -1,0 +1,197 @@
+.odds-converter {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.converter-single-column {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  max-width: 900px;
+  width: 100%;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .converter-single-column {
+    grid-template-columns: 1fr;
+  }
+}
+
+.converter-panel {
+  padding: 1.5rem;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.panel-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+/* Fix input visibility and spacing */
+.odds-converter .form-group {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.odds-converter .label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+/* Wide, visible numeric inputs */
+.oddsInput {
+  width: 100%;
+  min-width: min(420px, 100%);
+  min-height: 48px;
+  padding: 12px 14px;
+  font-size: 18px;
+  line-height: 1.4;
+  color: #000 !important;
+  background: #fff !important;
+  caret-color: #000;
+  border: 1px solid #d0d0d0;
+  border-radius: 10px;
+  overflow: visible;
+  text-indent: 0;
+  opacity: 1;
+}
+
+.oddsInput::placeholder {
+  color: #7a7a7a;
+  opacity: 1;
+}
+
+.oddsInput:focus {
+  outline: none;
+  border-color: #2196f3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+}
+
+/* Fallback for other inputs in converter */
+.odds-converter .input:not(.oddsInput) {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  background: white;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  font-size: 16px;
+  line-height: 1.4;
+  color: #000;
+  caret-color: #000;
+  overflow: visible;
+  text-indent: 0;
+  opacity: 1;
+}
+
+.odds-converter .input:not(.oddsInput)::placeholder {
+  color: #999;
+  opacity: 1;
+}
+
+.odds-converter .input:not(.oddsInput):focus {
+  outline: none;
+  border-color: #2196f3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+}
+
+.result-with-copy {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.result-value {
+  flex: 1;
+  padding: 10px 12px;
+  background: white;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #000;
+  min-height: 44px;
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  overflow: visible;
+}
+
+.result-value-large {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.fair-probability-result {
+  padding: 1rem;
+  background: #f0f7ff;
+  border: 1px solid #2196f3;
+  border-radius: 8px;
+}
+
+.result-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.result-label {
+  font-size: 0.875rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.vig-removal-section {
+  margin-top: 1.5rem;
+}
+
+.vig-removal-section .form-grid {
+  gap: 16px;
+  margin-top: 1rem;
+}
+
+.examples-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.section-subtitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.examples-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.example-item {
+  padding: 0.75rem;
+  background: #f9f9f9;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.example-item strong {
+  color: #2196f3;
+  font-weight: 600;
+}
+

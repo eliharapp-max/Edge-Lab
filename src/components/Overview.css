@@ -1,0 +1,172 @@
+/* Overview Component - Clean, Light, Minimal */
+
+.overview-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.overview-header {
+  margin-bottom: 2rem;
+}
+
+.overview-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #1a202c;
+  margin: 0;
+}
+
+/* Metric Cards */
+.overview-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.overview-metric-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.metric-label {
+  font-size: 0.875rem;
+  color: #718096;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.metric-value {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+.metric-value.positive {
+  color: #16a34a;
+}
+
+.metric-value.negative {
+  color: #dc2626;
+}
+
+/* Cards */
+.overview-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.overview-section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1a202c;
+  margin: 0 0 1rem 0;
+}
+
+/* Chart */
+.overview-chart {
+  margin-top: 1rem;
+}
+
+/* Insights */
+.overview-insights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.insight-content {
+  text-align: center;
+}
+
+.insight-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a202c;
+  margin-bottom: 0.5rem;
+}
+
+.insight-label {
+  font-size: 0.875rem;
+  color: #718096;
+}
+
+.insight-empty,
+.overview-empty {
+  color: #718096;
+  font-style: italic;
+  padding: 2rem;
+  text-align: center;
+}
+
+/* Recent Bets Table */
+.overview-bets-table {
+  margin-top: 1rem;
+}
+
+.overview-bets-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 2px solid #e2e8f0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.overview-bets-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f0f4f8;
+  font-size: 0.875rem;
+  color: #1a202c;
+}
+
+.overview-bets-row:last-child {
+  border-bottom: none;
+}
+
+.overview-bets-row .positive {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.overview-bets-row .negative {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .overview-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .overview-insights {
+    grid-template-columns: 1fr;
+  }
+
+  .overview-bets-header,
+  .overview-bets-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .overview-bets-header > div:nth-child(n+3),
+  .overview-bets-row > div:nth-child(n+3) {
+    display: none;
+  }
+}
+
