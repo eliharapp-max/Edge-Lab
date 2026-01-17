@@ -47,6 +47,7 @@ serve(async (req) => {
         const subscription = await stripe.subscriptions.retrieve(subscriptionId)
         subscriptionStatus = subscription.status
         currentPeriodEnd = subscription.current_period_end
+        userId = userId || subscription.metadata?.supabase_user_id || null
       }
     } else if (
       event.type === 'customer.subscription.created' ||
@@ -57,9 +58,10 @@ serve(async (req) => {
       customerId = subscription.customer as string | null
       subscriptionStatus = subscription.status
       currentPeriodEnd = subscription.current_period_end
+      userId = subscription.metadata?.supabase_user_id || null
 
       // Get user_id from customer metadata
-      if (customerId) {
+      if (!userId && customerId) {
         const customer = await stripe.customers.retrieve(customerId)
         if (typeof customer === 'object' && !customer.deleted) {
           userId = customer.metadata?.supabase_user_id || null
@@ -70,9 +72,28 @@ serve(async (req) => {
       subscriptionId = subscription.id
       customerId = subscription.customer as string | null
       subscriptionStatus = 'canceled'
+      userId = subscription.metadata?.supabase_user_id || null
 
       // Get user_id from customer metadata
-      if (customerId) {
+      if (!userId && customerId) {
+        const customer = await stripe.customers.retrieve(customerId)
+        if (typeof customer === 'object' && !customer.deleted) {
+          userId = customer.metadata?.supabase_user_id || null
+        }
+      }
+    } else if (event.type === 'invoice.payment_succeeded') {
+      const invoice = event.data.object as Stripe.Invoice
+      customerId = invoice.customer as string | null
+      subscriptionId = invoice.subscription as string | null
+
+      if (subscriptionId) {
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+        subscriptionStatus = subscription.status
+        currentPeriodEnd = subscription.current_period_end
+        userId = subscription.metadata?.supabase_user_id || null
+      }
+
+      if (!userId && customerId) {
         const customer = await stripe.customers.retrieve(customerId)
         if (typeof customer === 'object' && !customer.deleted) {
           userId = customer.metadata?.supabase_user_id || null

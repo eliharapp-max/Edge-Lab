@@ -11,22 +11,33 @@ export default function Upgrade({ onUpgradeSuccess, refreshSubscription }) {
     setError(null)
 
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
+      const { data: userData, error: userError } = await supabase.auth.getUser()
+      if (userError || !userData?.user?.id) {
         setError('Please log in to upgrade')
+        setLoading(false)
         return
       }
 
-      const { data, error: functionError } = await supabase.functions.invoke('create-checkout-session', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      })
+      const response = await fetch(
+        'https://wcqgjwotldeceldetwpf.supabase.co/functions/v1/create-checkout-session',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            user_id: userData.user.id,
+          }),
+        }
+      )
 
-      if (functionError) {
-        throw functionError
+      if (!response.ok) {
+        const errorPayload = await response.json().catch(() => ({}))
+        throw new Error(errorPayload.error || 'Failed to start checkout')
       }
 
+      const data = await response.json()
       if (data?.url) {
         window.location.href = data.url
       } else {
@@ -57,7 +68,7 @@ export default function Upgrade({ onUpgradeSuccess, refreshSubscription }) {
             <div className="feature-column">
               <h3 className="feature-column-title">Free</h3>
               <ul className="feature-list">
-                <li>5 bets per rolling 7 days</li>
+                <li>50 bets per rolling 7 days</li>
                 <li>Last 14 days stats only</li>
                 <li>No insights</li>
                 <li>Odds converter</li>
@@ -104,7 +115,12 @@ export function UpgradeSuccess({ onContinue }) {
         <p className="upgrade-subtitle">
           Your subscription is now active. Enjoy unlimited features and insights.
         </p>
-        <button className="upgrade-button" onClick={onContinue}>
+        <button
+          className="upgrade-button"
+          onClick={() => {
+            window.location.href = '/dashboard'
+          }}
+        >
           Go to Dashboard
         </button>
       </div>

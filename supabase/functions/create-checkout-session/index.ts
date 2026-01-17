@@ -1,9 +1,10 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Stripe from 'https://esm.sh/stripe@14.21.0?target=deno'
+import { corsHeaders } from '../_shared/cors.ts'
 
 const STRIPE_SECRET_KEY = Deno.env.get('STRIPE_SECRET_KEY') || ''
-const STRIPE_PRICE_ID_PRO_MONTHLY = Deno.env.get('STRIPE_PRICE_ID_PRO_MONTHLY') || ''
+const STRIPE_PRICE_ID = Deno.env.get('STRIPE_PRICE_ID') || ''
 const APP_URL = Deno.env.get('APP_URL') || 'http://localhost:5173'
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || ''
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
@@ -25,92 +26,67 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', {
       headers: {
-        'Access-Control-Allow-Origin': '*',
+        ...corsHeaders,
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
       },
     })
   }
 
   try {
-    // Get auth header
+    const payload = await req.json().catch(() => ({}))
+    const providedUserId = payload?.user_id || null
     const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
-      )
+
+    let userId = providedUserId
+    let userEmail: string | null = null
+
+    if (!userId && authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.replace('Bearer ', '')
+      const { data: { user } } = await supabaseAdmin.auth.getUser(token)
+      if (user?.id) {
+        userId = user.id
+        userEmail = user.email || null
+      }
     }
 
-    // Verify JWT and get user
-    const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
-    
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid or expired token' }),
-        { status: 401, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
-      )
+    if (userId && !userEmail) {
+      const { data: userData } = await supabaseAdmin.auth.admin.getUserById(userId)
+      userEmail = userData?.user?.email || null
     }
 
-    // Get user profile
-    const { data: profile, error: profileError } = await supabaseAdmin
-      .from('user_profiles')
-      .select('email')
-      .eq('user_id', user.id)
-      .single()
-
-    if (profileError || !profile) {
+    if (!userId) {
       return new Response(
-        JSON.stringify({ error: 'User profile not found' }),
-        { status: 404, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
+        JSON.stringify({ error: 'Missing user_id or valid auth token' }),
+        {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            ...corsHeaders,
+          },
+        }
       )
-    }
-
-    // Check for existing subscription
-    const { data: existingSubscription } = await supabaseAdmin
-      .from('subscriptions')
-      .select('stripe_customer_id')
-      .eq('user_id', user.id)
-      .single()
-
-    let customerId = existingSubscription?.stripe_customer_id
-
-    // Create Stripe customer if doesn't exist
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: profile.email,
-        metadata: {
-          supabase_user_id: user.id,
-        },
-      })
-      customerId = customer.id
-
-      // Store customer ID (may fail if subscription row doesn't exist yet, that's ok)
-      await supabaseAdmin
-        .from('subscriptions')
-        .upsert({
-          user_id: user.id,
-          stripe_customer_id: customerId,
-        }, {
-          onConflict: 'user_id'
-        })
     }
 
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
-      customer: customerId,
       mode: 'subscription',
+      client_reference_id: userId,
+      customer_email: userEmail || undefined,
       line_items: [
         {
-          price: STRIPE_PRICE_ID_PRO_MONTHLY,
+          price: STRIPE_PRICE_ID,
           quantity: 1,
         },
       ],
       success_url: `${APP_URL}/upgrade/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${APP_URL}/upgrade/cancel`,
       metadata: {
-        supabase_user_id: user.id,
+        supabase_user_id: userId,
+      },
+      subscription_data: {
+        metadata: {
+          supabase_user_id: userId,
+        },
       },
     })
 
@@ -120,7 +96,7 @@ serve(async (req) => {
         status: 200,
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
+          ...corsHeaders,
         },
       }
     )
@@ -132,7 +108,7 @@ serve(async (req) => {
         status: 500,
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
+          ...corsHeaders,
         },
       }
     )

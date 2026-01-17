@@ -1317,10 +1317,10 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
         if (!isPro) {
           const allBetsForCounting = [...bets, ...getQueuedBetData()]
           const betsLast7Days = getBetsLast7DaysCount(allBetsForCounting)
-          if (betsLast7Days >= 5) {
+          if (betsLast7Days >= 50) {
             setBetFormMessage({ 
               type: 'error', 
-              text: 'Free plan allows 5 bets per rolling 7 days. Upgrade for unlimited journaling.' 
+              text: 'Free plan allows 50 bets per rolling 7 days. Upgrade for unlimited journaling.' 
             })
             return
           }
@@ -1569,11 +1569,12 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
   // Handle upgrade routes (before auth check, but after session exists)
   const pathname = window.location.pathname
   if (pathname === '/upgrade/success') {
+    refreshSubscription()
     return (
       <UpgradeSuccess 
         onContinue={() => {
           window.history.pushState({}, '', '/')
-          refreshSubscription()
+          setActiveTab('dashboard')
         }} 
       />
     )
