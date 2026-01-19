@@ -5,7 +5,9 @@ import { corsHeaders } from '../_shared/cors.ts'
 
 const STRIPE_SECRET_KEY = Deno.env.get('STRIPE_SECRET_KEY') || ''
 const STRIPE_PRICE_ID = Deno.env.get('STRIPE_PRICE_ID') || ''
-const APP_URL = Deno.env.get('APP_URL') || 'http://localhost:5173'
+const NEXT_PUBLIC_SITE_URL = Deno.env.get('NEXT_PUBLIC_SITE_URL') || ''
+const NEXT_PUBLIC_VERCEL_URL = Deno.env.get('NEXT_PUBLIC_VERCEL_URL') || ''
+const VERCEL_URL = Deno.env.get('VERCEL_URL') || ''
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || ''
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
 
@@ -13,6 +15,19 @@ const stripe = new Stripe(STRIPE_SECRET_KEY, {
   apiVersion: '2024-06-20',
   httpClient: Stripe.createFetchHttpClient(),
 })
+
+function getBaseUrl() {
+  if (NEXT_PUBLIC_SITE_URL) {
+    return NEXT_PUBLIC_SITE_URL.replace(/\/+$/, '')
+  }
+  if (NEXT_PUBLIC_VERCEL_URL) {
+    return `https://${NEXT_PUBLIC_VERCEL_URL}`.replace(/\/+$/, '')
+  }
+  if (VERCEL_URL) {
+    return `https://${VERCEL_URL}`.replace(/\/+$/, '')
+  }
+  throw new Error('Missing production site URL env var')
+}
 
 const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   auth: {
@@ -40,7 +55,7 @@ serve(async (req) => {
     let userId = providedUserId
     let userEmail: string | null = null
 
-    if (!userId && authHeader?.startsWith('Bearer ')) {
+    if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.replace('Bearer ', '')
       const { data: { user } } = await supabaseAdmin.auth.getUser(token)
       if (user?.id) {
@@ -68,6 +83,10 @@ serve(async (req) => {
     }
 
     // Create checkout session
+    const baseUrl = getBaseUrl()
+    const successUrl = `${baseUrl}/dashboard?checkout=success&session_id={CHECKOUT_SESSION_ID}`
+    const cancelUrl = `${baseUrl}/dashboard?checkout=cancel`
+    console.log('CHECKOUT_URLS', { baseUrl, successUrl, cancelUrl })
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       client_reference_id: userId,
@@ -78,20 +97,20 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      success_url: `${APP_URL}/upgrade/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${APP_URL}/upgrade/cancel`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       metadata: {
-        supabase_user_id: userId,
+        user_id: userId,
       },
       subscription_data: {
         metadata: {
-          supabase_user_id: userId,
+          user_id: userId,
         },
       },
     })
 
     return new Response(
-      JSON.stringify({ url: session.url }),
+      JSON.stringify({ url: session.url, baseUrl, success_url: successUrl, cancel_url: cancelUrl }),
       {
         status: 200,
         headers: {

@@ -59,6 +59,11 @@ from: 'EDGE LAB <noreply@yourdomain.com>', // Update with your verified domain
    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
    ```
 
+### Vercel Environment Variables
+
+Set the following in Vercel for serverless API functions:
+- `SUPABASE_ANON_KEY`
+
 ### 5. Install Dependencies
 
 ```bash

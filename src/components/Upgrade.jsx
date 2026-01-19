@@ -17,20 +17,18 @@ export default function Upgrade({ onUpgradeSuccess, refreshSubscription }) {
         setLoading(false)
         return
       }
+      const { data: sessionData } = await supabase.auth.getSession()
 
-      const response = await fetch(
-        'https://wcqgjwotldeceldetwpf.supabase.co/functions/v1/create-checkout-session',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({
-            user_id: userData.user.id,
-          }),
-        }
-      )
+      const response = await fetch('/api/stripe/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionData?.session?.access_token || ''}`,
+        },
+        body: JSON.stringify({
+          user_id: userData.user.id,
+        }),
+      })
 
       if (!response.ok) {
         const errorPayload = await response.json().catch(() => ({}))

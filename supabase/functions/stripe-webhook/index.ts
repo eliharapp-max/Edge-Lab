@@ -39,7 +39,7 @@ serve(async (req) => {
 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session
-      userId = session.metadata?.supabase_user_id || null
+      userId = session.metadata?.user_id || session.metadata?.supabase_user_id || null
       subscriptionId = session.subscription as string | null
       customerId = session.customer as string | null
       
@@ -47,7 +47,7 @@ serve(async (req) => {
         const subscription = await stripe.subscriptions.retrieve(subscriptionId)
         subscriptionStatus = subscription.status
         currentPeriodEnd = subscription.current_period_end
-        userId = userId || subscription.metadata?.supabase_user_id || null
+        userId = userId || subscription.metadata?.user_id || subscription.metadata?.supabase_user_id || null
       }
     } else if (
       event.type === 'customer.subscription.created' ||
@@ -58,7 +58,7 @@ serve(async (req) => {
       customerId = subscription.customer as string | null
       subscriptionStatus = subscription.status
       currentPeriodEnd = subscription.current_period_end
-      userId = subscription.metadata?.supabase_user_id || null
+      userId = subscription.metadata?.user_id || subscription.metadata?.supabase_user_id || null
 
       // Get user_id from customer metadata
       if (!userId && customerId) {
@@ -72,7 +72,7 @@ serve(async (req) => {
       subscriptionId = subscription.id
       customerId = subscription.customer as string | null
       subscriptionStatus = 'canceled'
-      userId = subscription.metadata?.supabase_user_id || null
+      userId = subscription.metadata?.user_id || subscription.metadata?.supabase_user_id || null
 
       // Get user_id from customer metadata
       if (!userId && customerId) {
@@ -109,11 +109,13 @@ serve(async (req) => {
       })
     }
 
+    console.log('Webhook user_id:', userId, 'status:', subscriptionStatus)
+
     // Determine if user should be PRO
     const isPro = subscriptionStatus === 'active' || subscriptionStatus === 'trialing'
 
     // Update subscription record
-    await supabaseAdmin
+    const { data: subscriptionRow } = await supabaseAdmin
       .from('subscriptions')
       .upsert({
         user_id: userId,
@@ -124,6 +126,8 @@ serve(async (req) => {
       }, {
         onConflict: 'user_id'
       })
+
+    console.log('Updated subscriptions row for user:', subscriptionRow?.user_id || userId)
 
     // Update user_profiles.is_pro
     await supabaseAdmin
