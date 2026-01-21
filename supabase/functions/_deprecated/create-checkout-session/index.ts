@@ -20,11 +20,17 @@ function getBaseUrl() {
   if (NEXT_PUBLIC_SITE_URL) {
     return NEXT_PUBLIC_SITE_URL.replace(/\/+$/, '')
   }
+  if (VERCEL_URL) {
+    return `https://${VERCEL_URL}`.replace(/\/+$/, '')
+  }
   if (NEXT_PUBLIC_VERCEL_URL) {
     return `https://${NEXT_PUBLIC_VERCEL_URL}`.replace(/\/+$/, '')
   }
-  if (VERCEL_URL) {
-    return `https://${VERCEL_URL}`.replace(/\/+$/, '')
+  const isLocal =
+    Deno.env.get('SUPABASE_ENV') === 'local' ||
+    Deno.env.get('NODE_ENV') === 'development'
+  if (isLocal) {
+    return 'http://localhost:3000'
   }
   throw new Error('Missing production site URL env var')
 }
