@@ -82,7 +82,7 @@
 .input:focus {
   border-color: var(--accent);
   background: var(--panel);
-  box-shadow: 0 0 0 2px rgba(132, 210, 246, 0.35);
+  box-shadow: 0 0 0 3px rgba(56, 111, 164, 0.2);
   outline: none;
 }
 
@@ -100,28 +100,28 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  color: var(--bg);
-  background: var(--accent);
-  box-shadow: 0 0 16px rgba(132, 210, 246, 0.25);
+  color: #ffffff;
+  background: var(--accent-primary);
+  box-shadow: 0 10px 18px rgba(56, 111, 164, 0.2);
   width: 100%;
   font-family: inherit;
 }
 
 .btn:hover:not(:disabled) {
-  filter: brightness(1.05);
-  box-shadow: 0 0 20px rgba(132, 210, 246, 0.4);
+  background: var(--accent-deep);
+  box-shadow: 0 12px 22px rgba(56, 111, 164, 0.25);
   transform: translateY(-1px);
 }
 
 .btn:active:not(:disabled) {
   transform: translateY(0);
-  box-shadow: 0 0 12px rgba(132, 210, 246, 0.3);
+  box-shadow: 0 8px 16px rgba(56, 111, 164, 0.2);
 }
 
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  background: var(--accent);
+  background: var(--accent-primary);
   box-shadow: none;
   transform: none;
 }
@@ -136,10 +136,10 @@
 .error-message {
   margin-top: 0.75rem;
   padding: 0.75rem;
-  background: rgba(132, 210, 246, 0.12);
-  border: 1px solid rgba(132, 210, 246, 0.35);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--accent-deep);
   border-radius: 8px;
-  color: var(--accent);
+  color: var(--accent-deep);
   font-size: 0.875rem;
   animation: fadeIn 0.3s ease;
 }
@@ -147,10 +147,10 @@
 .success-message {
   margin-top: 0.75rem;
   padding: 0.75rem;
-  background: rgba(132, 210, 246, 0.12);
-  border: 1px solid rgba(132, 210, 246, 0.35);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--accent-primary);
   border-radius: 8px;
-  color: var(--accent);
+  color: var(--accent-primary);
   font-size: 0.875rem;
   animation: fadeIn 0.3s ease;
 }

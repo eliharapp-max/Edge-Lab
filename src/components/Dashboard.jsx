@@ -408,11 +408,11 @@ function Dashboard({ bets, profileId, isPro = false, onUpgrade }) {
           <h3 className="section-title">Cumulative P&L</h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={cumulativeData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(226, 232, 221, 0.2)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
               <XAxis dataKey="date" stroke="var(--text-muted)" />
               <YAxis stroke="var(--text-muted)" />
               <Tooltip contentStyle={{ backgroundColor: 'var(--panel)', border: '1px solid var(--border-color)' }} />
-              <Line type="monotone" dataKey="pnl" stroke="var(--accent)" strokeWidth={2} />
+              <Line type="monotone" dataKey="pnl" stroke="var(--accent-highlight)" strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -423,11 +423,11 @@ function Dashboard({ bets, profileId, isPro = false, onUpgrade }) {
           <h3 className="section-title">Daily P&L</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={dailyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(226, 232, 221, 0.2)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
               <XAxis dataKey="date" stroke="var(--text-muted)" />
               <YAxis stroke="var(--text-muted)" />
               <Tooltip contentStyle={{ backgroundColor: 'var(--panel)', border: '1px solid var(--border-color)' }} />
-              <Bar dataKey="pnl" fill="var(--accent)" />
+              <Bar dataKey="pnl" fill="var(--accent-highlight)" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -439,11 +439,11 @@ function Dashboard({ bets, profileId, isPro = false, onUpgrade }) {
             <h3 className="section-title">Profit by Sport/League</h3>
             <ResponsiveContainer width="100%" height={300}>
             <BarChart data={sportData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(226, 232, 221, 0.2)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
               <XAxis dataKey="sport" stroke="var(--text-muted)" />
               <YAxis stroke="var(--text-muted)" />
               <Tooltip contentStyle={{ backgroundColor: 'var(--panel)', border: '1px solid var(--border-color)' }} />
-              <Bar dataKey="profit" fill="var(--accent)" />
+              <Bar dataKey="profit" fill="var(--accent-highlight)" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -454,11 +454,11 @@ function Dashboard({ bets, profileId, isPro = false, onUpgrade }) {
             <h3 className="section-title">Profit by Market Type</h3>
             <ResponsiveContainer width="100%" height={300}>
             <BarChart data={marketData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(226, 232, 221, 0.2)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
               <XAxis dataKey="market" stroke="var(--text-muted)" />
               <YAxis stroke="var(--text-muted)" />
               <Tooltip contentStyle={{ backgroundColor: 'var(--panel)', border: '1px solid var(--border-color)' }} />
-              <Bar dataKey="profit" fill="var(--accent)" />
+              <Bar dataKey="profit" fill="var(--accent-highlight)" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -469,11 +469,11 @@ function Dashboard({ bets, profileId, isPro = false, onUpgrade }) {
             <h3 className="section-title">Profit by Book/App</h3>
             <ResponsiveContainer width="100%" height={300}>
             <BarChart data={bookData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(226, 232, 221, 0.2)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
               <XAxis dataKey="book" stroke="var(--text-muted)" />
               <YAxis stroke="var(--text-muted)" />
               <Tooltip contentStyle={{ backgroundColor: 'var(--panel)', border: '1px solid var(--border-color)' }} />
-              <Bar dataKey="profit" fill="var(--accent)" />
+              <Bar dataKey="profit" fill="var(--accent-highlight)" />
               </BarChart>
             </ResponsiveContainer>
           </div>

@@ -47,7 +47,7 @@
 }
 
 .profile-item:hover {
-  border-color: var(--accent-blue);
+  border-color: var(--accent-hover);
   box-shadow: var(--shadow-sm);
   transform: translateY(-1px);
 }
@@ -71,8 +71,8 @@
 }
 
 .recovery-key-warning {
-  background: rgba(132, 210, 246, 0.12);
-  border: 1.5px solid var(--accent-red);
+  background: var(--bg-tertiary);
+  border: 1.5px solid var(--accent-deep);
   border-radius: 8px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
@@ -102,10 +102,10 @@
 .error-message {
   margin-top: 0.75rem;
   padding: 0.75rem;
-  background: rgba(132, 210, 246, 0.12);
-  border: 1px solid var(--accent-red);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--accent-deep);
   border-radius: 6px;
-  color: var(--accent-red);
+  color: var(--accent-deep);
   font-size: 0.875rem;
 }
 

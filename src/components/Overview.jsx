@@ -152,7 +152,7 @@ function Overview({ bets = [] }) {
           <div className="overview-chart">
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(226, 232, 221, 0.2)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                 <XAxis 
                   dataKey="date" 
                   stroke="var(--text-muted)"
@@ -173,9 +173,9 @@ function Overview({ bets = [] }) {
                 <Line 
                   type="monotone" 
                   dataKey="pnl" 
-                  stroke="var(--accent)" 
+                  stroke="var(--accent-highlight)" 
                   strokeWidth={2}
-                  dot={{ fill: 'var(--accent)', r: 3 }}
+                  dot={{ fill: 'var(--accent-highlight)', r: 3 }}
                   activeDot={{ r: 5 }}
                 />
               </LineChart>

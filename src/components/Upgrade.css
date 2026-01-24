@@ -39,7 +39,7 @@
 .price-card {
   display: inline-block;
   background: var(--bg-tertiary);
-  border: 2px solid var(--accent-blue);
+  border: 2px solid var(--accent-primary);
   border-radius: 18px;
   padding: 2rem 3rem;
 }
@@ -47,7 +47,7 @@
 .price-amount {
   font-size: 3rem;
   font-weight: 700;
-  color: var(--accent-blue);
+  color: var(--accent-deep);
   line-height: 1;
 }
 
@@ -75,8 +75,8 @@
 }
 
 .feature-column.pro {
-  border-color: var(--accent-blue);
-  background: rgba(132, 210, 246, 0.08);
+  border-color: var(--accent-primary);
+  background: rgba(56, 111, 164, 0.06);
 }
 
 .feature-column-title {
@@ -110,8 +110,8 @@
 .upgrade-button {
   width: 100%;
   padding: 1rem 2rem;
-  background: var(--accent);
-  color: var(--bg);
+  background: var(--accent-primary);
+  color: #ffffff;
   border: none;
   border-radius: 8px;
   font-size: 1.125rem;
@@ -121,9 +121,9 @@
 }
 
 .upgrade-button:hover:not(:disabled) {
-  filter: brightness(1.05);
+  background: var(--accent-deep);
   transform: translateY(-1px);
-  box-shadow: 0 0 16px rgba(132, 210, 246, 0.35);
+  box-shadow: 0 10px 20px rgba(56, 111, 164, 0.2);
 }
 
 .upgrade-button:disabled {
@@ -132,22 +132,22 @@
 }
 
 .upgrade-button.secondary {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
+  background: var(--bg-secondary);
+  color: var(--accent-deep);
   border: 1px solid var(--border-color);
 }
 
 .upgrade-button.secondary:hover:not(:disabled) {
-  background: var(--bg-secondary);
+  background: var(--bg-tertiary);
 }
 
 .upgrade-error {
-  background: rgba(132, 210, 246, 0.12);
-  border: 1px solid rgba(132, 210, 246, 0.35);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--accent-deep);
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1.5rem;
-  color: var(--accent);
+  color: var(--accent-deep);
   text-align: center;
 }
 

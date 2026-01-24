@@ -50,7 +50,7 @@
 
 .time-range-select:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(132, 210, 246, 0.35);
+  box-shadow: 0 0 0 3px rgba(56, 111, 164, 0.2);
 }
 
 .insights-empty {
@@ -76,8 +76,8 @@
 }
 
 .insights-section-title-warning {
-  border-bottom-color: var(--panel-hover);
-  color: var(--accent);
+  border-bottom-color: var(--accent-hover);
+  color: var(--accent-deep);
 }
 
 .insights-section-title-neutral {
@@ -96,21 +96,21 @@
   border: 1px solid var(--border-color);
   border-radius: 18px;
   padding: 1.25rem;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-md);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .insight-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-lg);
 }
 
 .insight-card-good {
-  border-left: 3px solid var(--accent);
+  border-left: 3px solid var(--accent-hover);
 }
 
 .insight-card-warning {
-  border-left: 3px solid var(--accent);
+  border-left: 3px solid var(--accent-hover);
 }
 
 .insight-card-neutral {

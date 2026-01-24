@@ -74,7 +74,7 @@
 .oddsInput:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(132, 210, 246, 0.2);
+  box-shadow: 0 0 0 3px rgba(56, 111, 164, 0.2);
 }
 
 /* Fallback for other inputs in converter */
@@ -102,7 +102,7 @@
 .odds-converter .input:not(.oddsInput):focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(132, 210, 246, 0.2);
+  box-shadow: 0 0 0 3px rgba(56, 111, 164, 0.2);
 }
 
 .result-with-copy {
