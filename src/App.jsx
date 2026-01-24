@@ -24,20 +24,20 @@ class BetFormErrorBoundary extends Component {
       return (
         <div style={{
           padding: '1rem',
-          backgroundColor: '#fee',
-          border: '2px solid #fcc',
+          backgroundColor: 'rgba(132, 210, 246, 0.12)',
+          border: '2px solid rgba(132, 210, 246, 0.35)',
           borderRadius: '8px',
           margin: '1rem 0'
         }}>
-          <h3 style={{ color: '#c00', marginTop: 0 }}>⚠️ Error in Add Bet</h3>
-          <p style={{ color: '#800' }}>{this.state.error?.message || 'An error occurred'}</p>
+          <h3 style={{ color: 'var(--text)', marginTop: 0 }}>⚠️ Error in Add Bet</h3>
+          <p style={{ color: 'var(--text-secondary)' }}>{this.state.error?.message || 'An error occurred'}</p>
           <details style={{ marginTop: '1rem' }}>
-            <summary style={{ cursor: 'pointer', color: '#666' }}>Error details</summary>
+            <summary style={{ cursor: 'pointer', color: 'var(--text-secondary)' }}>Error details</summary>
             <pre style={{
               marginTop: '0.5rem',
               padding: '0.5rem',
-              backgroundColor: '#fff',
-              border: '1px solid #ccc',
+              backgroundColor: 'var(--panel)',
+              border: '1px solid var(--border-color)',
               borderRadius: '4px',
               fontSize: '0.75rem',
               overflow: 'auto',
@@ -58,8 +58,8 @@ class BetFormErrorBoundary extends Component {
             style={{
               marginTop: '1rem',
               padding: '0.5rem 1rem',
-              backgroundColor: '#2196f3',
-              color: 'white',
+              backgroundColor: 'var(--accent)',
+              color: 'var(--bg)',
               border: 'none',
               borderRadius: '4px',
               cursor: 'pointer'
@@ -84,6 +84,8 @@ import Insights from './components/Insights'
 import Upgrade, { UpgradeSuccess, UpgradeCancel } from './components/Upgrade'
 import { supabase } from './lib/supabase'
 import { deriveKey, encryptData, decryptData, generateSalt, hashPIN } from './utils/crypto'
+import { parseOdds, oddsToImpliedProb, impliedProbToPercent, clampNumber } from './lib/oddsUtils'
+import { getBestOddsForLeg } from './lib/oddsProvider'
 import { loadBets, addBet, updateBet, deleteBet, saveBets } from './lib/betsStore'
 import { enqueueBet, getQueuedBets, getQueuedBetData, markBetSynced, removeBet as removeQueuedBet, updateQueuedBet } from './lib/betQueue'
 import { useSubscription } from './lib/useSubscription'
@@ -103,7 +105,9 @@ function App() {
   const [rounding, setRounding] = useState(1)
   const [savedSetups, setSavedSetups] = useState([])
   const [legCount, setLegCount] = useState(6)
-  const [legProbabilities, setLegProbabilities] = useState([55, 55, 55, 55, 55, 55])
+  const [legOdds, setLegOdds] = useState(['-110', '-110', '-110', '-110', '-110', '-110'])
+  const [legOddsFormats, setLegOddsFormats] = useState(['american', 'american', 'american', 'american', 'american', 'american'])
+  const [showShopOdds, setShowShopOdds] = useState(false)
   
   // Journal state
   const [bets, setBets] = useState([])
@@ -122,11 +126,19 @@ function App() {
     marketType: 'ML',
     book: '',
     odds: '',
+    oddsFormat: 'american',
     stake: '',
     result: 'Win',
+    payout: '',
     confidence: 5,
-    notes: ''
+    notes: '',
+    betType: 'straight'
   })
+  const [parlayLegCount, setParlayLegCount] = useState(2)
+  const [parlayLegs, setParlayLegs] = useState([
+    { market: '', selection: '', line: '', oddsText: '', oddsFormat: 'american', legResult: 'hit' },
+    { market: '', selection: '', line: '', oddsText: '', oddsFormat: 'american', legResult: 'hit' }
+  ])
   const [filters, setFilters] = useState({
     sport: '',
     marketType: '',
@@ -449,41 +461,6 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bets, savedSetups, currentProfile, currentPin, currentSalt])
 
-  // Convert American odds to decimal
-  const americanToDecimal = (american) => {
-    const num = parseFloat(american)
-    if (isNaN(num)) return null
-    if (num > 0) {
-      return 1 + (num / 100)
-    } else {
-      return 1 + (100 / Math.abs(num))
-    }
-  }
-
-  // Detect format and convert to decimal
-  const parseOdds = (input) => {
-    if (!input || input.trim() === '') return null
-    const cleaned = input.trim().replace(/[^\d.\-+]/g, '')
-    if (!cleaned) return null
-    
-    const num = parseFloat(cleaned)
-    if (isNaN(num)) return null
-    
-    // If it's between 0 and 2, assume decimal
-    if (num > 0 && num <= 2) {
-      return num
-    }
-    
-    // Otherwise assume American
-    return americanToDecimal(num)
-  }
-
-  // Calculate implied probability
-  const impliedProbability = (decimalOdds) => {
-    if (!decimalOdds || decimalOdds <= 0) return null
-    return 1 / decimalOdds
-  }
-
   // Calculate arb stakes
   const calculateArb = () => {
     const decimalA = parseOdds(oddsA)
@@ -499,8 +476,8 @@ function App() {
       return { error: 'Please enter a valid total stake greater than 0' }
     }
 
-    const probA = impliedProbability(decimalA)
-    const probB = impliedProbability(decimalB)
+    const probA = oddsToImpliedProb(decimalA, 'decimal')
+    const probB = oddsToImpliedProb(decimalB, 'decimal')
     const impliedSum = probA + probB
     const overround = (impliedSum - 1) * 100
 
@@ -620,34 +597,93 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
     setActiveTab('arb')
   }
 
-  // Update leg probabilities when leg count changes
+  const getDefaultOddsValue = (format) => {
+    if (format === 'decimal') return '1.91'
+    if (format === 'fractional') return '10/11'
+    return '-110'
+  }
+
+  // Update leg odds + formats when leg count changes
   useEffect(() => {
-    setLegProbabilities(prev => {
+    setLegOdds(prev => {
       if (prev.length === legCount) return prev
-      
+
       if (prev.length < legCount) {
-        // Add new legs with default probability (average of existing or 55%)
-        const avgProb = prev.length > 0 
-          ? Math.round(prev.reduce((a, b) => a + b, 0) / prev.length)
-          : 55
-        return [...prev, ...Array(legCount - prev.length).fill(avgProb)]
-      } else {
-        // Remove extra legs
-        return prev.slice(0, legCount)
+        const fallback = prev[prev.length - 1] || getDefaultOddsValue('american')
+        return [...prev, ...Array(legCount - prev.length).fill(fallback)]
       }
+      return prev.slice(0, legCount)
+    })
+
+    setLegOddsFormats(prev => {
+      if (prev.length === legCount) return prev
+      if (prev.length < legCount) {
+        const fallback = prev[prev.length - 1] || 'american'
+        return [...prev, ...Array(legCount - prev.length).fill(fallback)]
+      }
+      return prev.slice(0, legCount)
     })
   }, [legCount])
 
-  // Update leg probability at index
-  const updateLegProbability = (index, value) => {
-    const numValue = parseFloat(value)
-    if (isNaN(numValue)) return
-    
-    // Clamp between 0 and 100
-    const clamped = Math.max(0, Math.min(100, numValue))
-    const newProbs = [...legProbabilities]
-    newProbs[index] = clamped
-    setLegProbabilities(newProbs)
+  useEffect(() => {
+    setParlayLegs(prev => {
+      if (prev.length === parlayLegCount) return prev
+      if (prev.length < parlayLegCount) {
+        const fallback = prev[prev.length - 1] || { market: '', selection: '', line: '', oddsText: '', oddsFormat: 'american', legResult: 'hit' }
+        return [...prev, ...Array(parlayLegCount - prev.length).fill(null).map(() => ({ ...fallback }))]
+      }
+      return prev.slice(0, parlayLegCount)
+    })
+  }, [parlayLegCount])
+
+  const updateParlayLeg = (index, patch) => {
+    setParlayLegs(prev => prev.map((leg, legIndex) => (
+      legIndex === index ? { ...leg, ...patch } : leg
+    )))
+  }
+
+  const calculateParlayImpliedProb = (legs) => {
+    if (!legs.length) return null
+    const legProbs = legs.map(leg => oddsToImpliedProb(leg.oddsText, leg.oddsFormat)).filter(Boolean)
+    if (legProbs.length !== legs.length) return null
+    return legProbs.reduce((prod, p) => prod * p, 1)
+  }
+
+  // Update leg odds at index
+  const updateLegOdds = (index, value) => {
+    const newOdds = [...legOdds]
+    newOdds[index] = value
+    setLegOdds(newOdds)
+  }
+
+  const updateLegOddsFormat = (index, value) => {
+    const newFormats = [...legOddsFormats]
+    newFormats[index] = value
+    setLegOddsFormats(newFormats)
+  }
+
+  const getImpliedPercent = (oddsText, format) => {
+    const prob = oddsToImpliedProb(oddsText, format)
+    return prob ? impliedProbToPercent(prob) : null
+  }
+
+  const buildShopOddsRows = () => {
+    return legOdds.slice(0, legCount).map((oddsText, index) => {
+      const oddsFormat = legOddsFormats[index] || 'american'
+      const impliedProb = oddsToImpliedProb(oddsText, oddsFormat)
+      const bestOdds = getBestOddsForLeg({ index, oddsText, oddsFormat })
+      const bestProb = bestOdds ? oddsToImpliedProb(bestOdds.oddsText, bestOdds.oddsFormat) : null
+      const delta = (impliedProb && bestProb) ? impliedProb - bestProb : null
+      return {
+        index,
+        oddsText,
+        oddsFormat,
+        impliedProb,
+        bestOdds,
+        bestProb,
+        delta
+      }
+    })
   }
 
   // Poisson Binomial Distribution - Calculate probability of exactly k successes
@@ -682,18 +718,36 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
 
   // Calculate reality check results
   const calculateReality = () => {
-    const validProbs = legProbabilities.slice(0, legCount).filter(p => p >= 0 && p <= 100)
-    if (validProbs.length === 0) return null
-    
+    const legItems = legOdds.slice(0, legCount).map((oddsText, index) => {
+      const oddsFormat = legOddsFormats[index] || 'american'
+      const impliedProb = oddsToImpliedProb(oddsText, oddsFormat)
+      const bestOdds = getBestOddsForLeg({ index, oddsText, oddsFormat })
+      const bestProb = bestOdds ? oddsToImpliedProb(bestOdds.oddsText, bestOdds.oddsFormat) : null
+      return {
+        index,
+        oddsText,
+        oddsFormat,
+        impliedProb,
+        bestOdds,
+        bestProb
+      }
+    })
+
+    const hasAllLegs = legItems.every(item => item.impliedProb > 0 && item.impliedProb < 1)
+    if (!hasAllLegs) return null
+
+    const validProbs = legItems.map(item => item.impliedProb * 100)
+    const probabilities = legItems.map(item => item.impliedProb)
+
     // Straight parlay: all legs hit
-    const allHitProb = validProbs.reduce((prod, p) => prod * (p / 100), 1)
-    
+    const allHitProb = probabilities.reduce((prod, p) => prod * p, 1)
+
     // Calculate probabilities for each outcome
     const outcomes = []
     for (let k = 0; k <= validProbs.length; k++) {
       const exactlyK = poissonBinomialExactly(validProbs, k)
       const atLeastK = k === 0 ? 1 : poissonBinomialAtLeast(validProbs, k)
-      
+
       outcomes.push({
         k,
         exactly: exactlyK,
@@ -702,18 +756,39 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
         atLeastPercent: atLeastK * 100
       })
     }
-    
+
     // Find weakest leg (lowest probability)
-    const minProb = Math.min(...validProbs)
-    const weakestIndex = validProbs.indexOf(minProb)
-    
+    const weakestItem = legItems.reduce((min, item) => (
+      item.impliedProb < min.impliedProb ? item : min
+    ), legItems[0])
+    const weakestIndex = weakestItem.index
+
+    const P = probabilities.reduce((prod, p) => prod * p, 1)
+    const n = probabilities.length
+    const L = -Math.log(P)
+    const L2 = L * (1 + 0.08 * (n - 1))
+    const difficulty = clampNumber(Math.round(99 * (1 - Math.exp(-L2 / 3.0))), 0, 99)
+
+    const priceScores = legItems
+      .filter(item => item.bestProb)
+      .map(item => {
+        const delta = Math.max(0, item.impliedProb - item.bestProb)
+        return clampNumber(Math.round(99 * Math.exp(-delta / 0.02)), 0, 99)
+      })
+    const priceQuality = priceScores.length
+      ? Math.round(priceScores.reduce((sum, score) => sum + score, 0) / priceScores.length)
+      : null
+
     return {
       allHitProb,
       allHitPercent: allHitProb * 100,
       outcomes,
       weakestIndex,
-      weakestProb: minProb,
-      legProbabilities: validProbs
+      weakestProb: weakestItem.impliedProb * 100,
+      legProbabilities: validProbs,
+      difficultyScore: difficulty,
+      priceQualityScore: priceQuality,
+      priceQualityAvailable: priceScores.length > 0
     }
   }
 
@@ -725,9 +800,20 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
     if (bet.profit !== undefined) {
       return bet.profit
     }
+
+    if (bet.betType === 'parlay') {
+      const stake = bet.stake || 0
+      if (bet.result === 'Win' && bet.payout !== undefined) {
+        return bet.payout - stake
+      }
+      if (bet.result === 'Loss') {
+        return -stake
+      }
+      return 0
+    }
     
     // Otherwise calculate (for backwards compatibility)
-    const decimalOdds = bet.decimalOdds || parseOdds(bet.odds)
+    const decimalOdds = getDecimalOddsForBet(bet)
     if (!decimalOdds) return 0
     
     if (bet.result === 'Win') {
@@ -737,6 +823,15 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
     } else {
       return 0 // Push
     }
+  }
+
+  const getDecimalOddsForBet = (bet) => {
+    if (bet.decimalOdds) return bet.decimalOdds
+    if (bet.betType === 'parlay') {
+      if (bet.impliedProb) return 1 / bet.impliedProb
+      return null
+    }
+    return parseOdds(bet.odds, bet.oddsFormat)
   }
 
   const getOddsRange = (decimalOdds) => {
@@ -779,7 +874,7 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
     if (bets.length === 0) return null
 
     const filteredBets = bets.filter(bet => {
-      const decimalOdds = parseOdds(bet.odds)
+      const decimalOdds = getDecimalOddsForBet(bet)
       const american = decimalOdds ? decimalToAmerican(decimalOdds) : 0
       
       if (filters.sport && bet.sport.toLowerCase() !== filters.sport.toLowerCase()) return false
@@ -803,7 +898,7 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
     const profit = filteredBets.reduce((sum, b) => sum + calculateBetProfit(b), 0)
     const roi = totalRisked > 0 ? (profit / totalRisked) * 100 : 0
     const avgOdds = filteredBets.reduce((sum, b) => {
-      const dec = parseOdds(b.odds)
+      const dec = getDecimalOddsForBet(b)
       return sum + (dec || 0)
     }, 0) / totalBets
 
@@ -877,7 +972,7 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
     // Breakdown by odds range
     const byOddsRange = {}
     filteredBets.forEach(bet => {
-      const decimalOdds = parseOdds(bet.odds)
+      const decimalOdds = getDecimalOddsForBet(bet)
       if (!decimalOdds) return
       const range = getOddsRange(decimalOdds)
       if (!byOddsRange[range]) {
@@ -1210,38 +1305,113 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
       // Clear any previous messages
       setBetFormMessage({ type: null, text: '' })
 
-      const decimalOdds = parseOdds(betForm.odds)
-      if (!decimalOdds || !betForm.stake || !betForm.sport || !betForm.book || betForm.book.trim() === '') {
+      const isParlay = betForm.betType === 'parlay'
+      const stake = parseFloat(betForm.stake)
+
+      if (!betForm.sport || !betForm.book || betForm.book.trim() === '' || !betForm.date) {
         setBetFormMessage({ type: 'error', text: 'Please fill in all required fields (including Book/App)' })
         return
       }
 
-      const stake = parseFloat(betForm.stake)
-      const impliedProb = 1 / decimalOdds
-      let profit = 0
-      if (betForm.result === 'Win') {
-        profit = stake * (decimalOdds - 1)
-      } else if (betForm.result === 'Loss') {
-        profit = -stake
-      } else {
-        profit = 0 // Push
+      if (!stake || stake <= 0) {
+        setBetFormMessage({ type: 'error', text: 'Please enter a valid stake' })
+        return
       }
 
-      const betPayload = {
-        date: betForm.date,
-        sport: betForm.sport,
-        marketType: betForm.marketType,
-        book: betForm.book,
-        odds: betForm.odds,
-        stake: stake,
-        result: betForm.result,
-        confidence: betForm.confidence,
-        notes: betForm.notes || '',
-        // Computed fields
-        decimalOdds: decimalOdds,
-        impliedProb: impliedProb,
-        profit: profit,
-        timestamp: new Date(betForm.date).toISOString()
+      let betPayload = null
+
+      if (isParlay) {
+        if (parlayLegs.length < 2) {
+          setBetFormMessage({ type: 'error', text: 'Parlays require at least 2 legs.' })
+          return
+        }
+
+        const parlayImplied = calculateParlayImpliedProb(parlayLegs)
+        if (!parlayImplied) {
+          setBetFormMessage({ type: 'error', text: 'Enter valid odds for all legs.' })
+          return
+        }
+
+        const payout = parseFloat(betForm.payout)
+        if (!payout || payout <= 0) {
+          setBetFormMessage({ type: 'error', text: 'Please enter the payout for this parlay.' })
+          return
+        }
+
+        let profit = 0
+        if (betForm.result === 'Win') {
+          profit = payout - stake
+        } else if (betForm.result === 'Loss') {
+          profit = -stake
+        } else {
+          profit = 0
+        }
+
+        const decimalOdds = parlayImplied > 0 ? 1 / parlayImplied : null
+        const oddsText = decimalOdds ? decimalOdds.toFixed(2) : ''
+
+        betPayload = {
+          date: betForm.date,
+          sport: betForm.sport,
+          marketType: 'Parlay',
+          book: betForm.book,
+          odds: oddsText,
+          oddsFormat: 'decimal',
+          stake: stake,
+          payout: payout,
+          result: betForm.result,
+          confidence: betForm.confidence,
+          notes: betForm.notes || '',
+          betType: 'parlay',
+          decimalOdds: decimalOdds,
+          impliedProb: parlayImplied,
+          profit: profit,
+          legs: parlayLegs.map((leg, idx) => ({
+            legIndex: idx,
+            market: leg.market,
+            selection: leg.selection,
+            line: leg.line,
+            oddsText: leg.oddsText,
+            oddsFormat: leg.oddsFormat,
+            impliedProb: oddsToImpliedProb(leg.oddsText, leg.oddsFormat),
+            legResult: leg.legResult
+          })),
+          timestamp: new Date(betForm.date).toISOString()
+        }
+      } else {
+        const decimalOdds = parseOdds(betForm.odds, betForm.oddsFormat)
+        if (!decimalOdds) {
+          setBetFormMessage({ type: 'error', text: 'Please enter valid odds.' })
+          return
+        }
+
+        const impliedProb = 1 / decimalOdds
+        let profit = 0
+        if (betForm.result === 'Win') {
+          profit = stake * (decimalOdds - 1)
+        } else if (betForm.result === 'Loss') {
+          profit = -stake
+        } else {
+          profit = 0 // Push
+        }
+
+        betPayload = {
+          date: betForm.date,
+          sport: betForm.sport,
+          marketType: betForm.marketType,
+          book: betForm.book,
+          odds: betForm.odds,
+          oddsFormat: betForm.oddsFormat,
+          stake: stake,
+          result: betForm.result,
+          confidence: betForm.confidence,
+          notes: betForm.notes || '',
+          betType: 'straight',
+          decimalOdds: decimalOdds,
+          impliedProb: impliedProb,
+          profit: profit,
+          timestamp: new Date(betForm.date).toISOString()
+        }
       }
 
       if (editingBet) {
@@ -1393,11 +1563,19 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
         marketType: 'ML',
         book: '',
         odds: '',
+        oddsFormat: 'american',
         stake: '',
         result: 'Win',
+        payout: '',
         confidence: 5,
-        notes: ''
+        notes: '',
+        betType: 'straight'
       })
+      setParlayLegCount(2)
+      setParlayLegs([
+        { market: '', selection: '', line: '', oddsText: '', oddsFormat: 'american', legResult: 'hit' },
+        { market: '', selection: '', line: '', oddsText: '', oddsFormat: 'american', legResult: 'hit' }
+      ])
     } catch (error) {
       console.error('ADD_BET failed', error)
       // ALWAYS show visible error message (never silent) - prevent crash
@@ -1415,17 +1593,45 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
 
   const handleEditBet = (bet) => {
     setEditingBet(bet)
+    const isParlay = bet.betType === 'parlay'
     setBetForm({
       date: bet.date.slice(0, 16),
       sport: bet.sport,
-      marketType: bet.marketType,
+      marketType: bet.marketType || 'ML',
       book: bet.book || '',
-      odds: bet.odds,
-      stake: bet.stake.toString(),
-      result: bet.result,
-      confidence: bet.confidence,
-      notes: bet.notes || ''
+      odds: bet.odds || '',
+      oddsFormat: bet.oddsFormat || 'american',
+      stake: bet.stake?.toString() || '',
+      result: bet.result || 'Win',
+      payout: bet.payout?.toString() || '',
+      confidence: bet.confidence || 5,
+      notes: bet.notes || '',
+      betType: isParlay ? 'parlay' : 'straight'
     })
+
+    if (isParlay) {
+      const legs = Array.isArray(bet.legs) ? bet.legs : []
+      const normalizedLegs = legs.map((leg) => ({
+        market: leg.market || '',
+        selection: leg.selection || '',
+        line: leg.line || '',
+        oddsText: leg.oddsText || '',
+        oddsFormat: leg.oddsFormat || 'american',
+        legResult: leg.legResult || 'hit'
+      }))
+      const nextCount = Math.max(2, normalizedLegs.length || 2)
+      setParlayLegCount(nextCount)
+      setParlayLegs(normalizedLegs.length ? normalizedLegs : [
+        { market: '', selection: '', line: '', oddsText: '', oddsFormat: 'american', legResult: 'hit' },
+        { market: '', selection: '', line: '', oddsText: '', oddsFormat: 'american', legResult: 'hit' }
+      ])
+    } else {
+      setParlayLegCount(2)
+      setParlayLegs([
+        { market: '', selection: '', line: '', oddsText: '', oddsFormat: 'american', legResult: 'hit' },
+        { market: '', selection: '', line: '', oddsText: '', oddsFormat: 'american', legResult: 'hit' }
+      ])
+    }
   }
 
   const handleDeleteBet = async (id) => {
@@ -1896,16 +2102,18 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
               </div>
 
               <div className="leg-probabilities-section">
-                <h3 className="section-title" style={{ fontSize: '1rem', marginBottom: '1rem' }}>Leg Probabilities</h3>
-                {legProbabilities.slice(0, legCount).map((prob, index) => {
-                  const hasWarning = prob > 80
+                <h3 className="section-title" style={{ fontSize: '1rem', marginBottom: '1rem' }}>Leg Odds</h3>
+                {legOdds.slice(0, legCount).map((odds, index) => {
+                  const format = legOddsFormats[index] || 'american'
+                  const impliedPercent = getImpliedPercent(odds, format)
+                  const hasWarning = typeof impliedPercent === 'number' && impliedPercent > 80
                   const isWeakest = realityResult && realityResult.weakestIndex === index
-                  
+
                   return (
                     <div key={index} className="leg-probability-input" style={{ marginBottom: '1.5rem' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                         <label className="label" style={{ marginBottom: 0 }}>
-                          Leg {index + 1} Probability
+                          Leg {index + 1} Odds
                           {isWeakest && (
                             <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', color: 'var(--accent-red)', fontStyle: 'italic' }}>
                               (Weakest leg)
@@ -1913,33 +2121,32 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
                           )}
                         </label>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                          <input
-                            type="number"
+                          <select
                             className="input"
-                            style={{ width: '80px', textAlign: 'center' }}
-                            min="0"
-                            max="100"
-                            step="0.1"
-                            value={prob}
-                            onChange={(e) => updateLegProbability(index, e.target.value)}
+                            style={{ width: '130px' }}
+                            value={format}
+                            onChange={(e) => updateLegOddsFormat(index, e.target.value)}
+                          >
+                            <option value="american">American</option>
+                            <option value="decimal">Decimal</option>
+                            <option value="fractional">Fractional</option>
+                          </select>
+                          <input
+                            type="text"
+                            className="input"
+                            style={{ width: '120px', textAlign: 'center' }}
+                            placeholder={getDefaultOddsValue(format)}
+                            value={odds}
+                            onChange={(e) => updateLegOdds(index, e.target.value)}
                           />
-                          <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>%</span>
                         </div>
                       </div>
-                      <div className="slider-group">
-                        <input
-                          type="range"
-                          className="slider"
-                          min="0"
-                          max="100"
-                          step="0.1"
-                          value={prob}
-                          onChange={(e) => updateLegProbability(index, e.target.value)}
-                        />
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                        Implied probability: {typeof impliedPercent === 'number' ? `${impliedPercent.toFixed(2)}%` : '—'}
                       </div>
                       {hasWarning && (
                         <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--accent-yellow)', fontStyle: 'italic' }}>
-                          ⚠ High probability assumption (&gt;80%)
+                          ⚠ High implied probability (&gt;80%)
                         </div>
                       )}
                       {isWeakest && realityResult && (
@@ -1952,6 +2159,12 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
                 })}
               </div>
 
+              <div className="btn-group" style={{ marginTop: '1.5rem' }}>
+                <button className="btn btn-secondary" type="button" onClick={() => setShowShopOdds(true)}>
+                  Shop Odds
+                </button>
+              </div>
+
               {realityResult && (
                 <>
                   {/* Straight Parlay Result */}
@@ -1962,6 +2175,36 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
                       Probability that all {legCount} legs hit: <strong>{realityResult.allHitPercent.toFixed(4)}%</strong>
                       <br />
                       That's approximately <strong>1 in {realityResult.allHitProb > 0 ? Math.round(1 / realityResult.allHitProb).toLocaleString() : '∞'}</strong> attempts.
+                    </div>
+                  </div>
+
+                  <div className="card" style={{ marginBottom: '2rem' }}>
+                    <div className="card-section">
+                      <h3 className="section-title">Parlay Difficulty Score</h3>
+                      <div className="reality-result-value" style={{ fontSize: '2.5rem' }}>
+                        {realityResult.difficultyScore}
+                      </div>
+                      <div style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                        0–99 score based on leg probabilities and leg count.
+                      </div>
+                      <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                        Informational only — not betting advice.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="card" style={{ marginBottom: '2rem' }}>
+                    <div className="card-section">
+                      <h3 className="section-title">Price Quality Score</h3>
+                      <div className="reality-result-value" style={{ fontSize: '2.5rem' }}>
+                        {realityResult.priceQualityAvailable ? realityResult.priceQualityScore : '—'}
+                      </div>
+                      <div style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                        {realityResult.priceQualityAvailable ? '0–99 score based on odds quality.' : '— (connect odds provider)'}
+                      </div>
+                      <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                        Informational only — not betting advice.
+                      </div>
                     </div>
                   </div>
 
@@ -2014,6 +2257,58 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
                 </>
               )}
             </div>
+            {showShopOdds && (
+              <div className="modal-backdrop" onClick={() => setShowShopOdds(false)}>
+                <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+                  <div className="modal-header">
+                    <h3>Shop Odds</h3>
+                    <button className="btn btn-small" onClick={() => setShowShopOdds(false)}>Close</button>
+                  </div>
+                  <div className="modal-body">
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                      Compare your odds to the best available line (when connected).
+                    </p>
+                    <div className="modal-table">
+                      <div className="modal-table-row modal-table-header">
+                        <div>Leg</div>
+                        <div>Your Odds</div>
+                        <div>Best Odds</div>
+                        <div>Delta</div>
+                      </div>
+                      {buildShopOddsRows().map((row) => (
+                        <div key={row.index} className="modal-table-row">
+                          <div>Leg {row.index + 1}</div>
+                          <div>{row.oddsText || '—'} ({row.oddsFormat})</div>
+                          <div>{row.bestOdds ? `${row.bestOdds.oddsText} (${row.bestOdds.oddsFormat})` : '—'}</div>
+                          <div>
+                            {row.delta !== null
+                              ? `${(row.delta * 100).toFixed(2)}%`
+                              : '—'}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ marginTop: '1rem' }}>
+                      <button className="btn" type="button">Connect odds provider to enable</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            {import.meta.env.DEV && (
+              <div className="card" style={{ marginTop: '2rem' }}>
+                <div className="card-section">
+                  <h3 className="section-title">Odds Debug (Dev Only)</h3>
+                  <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                    American -110 → {impliedProbToPercent(oddsToImpliedProb('-110', 'american'))?.toFixed(2)}%
+                    <br />
+                    Decimal 1.91 → {impliedProbToPercent(oddsToImpliedProb('1.91', 'decimal'))?.toFixed(2)}%
+                    <br />
+                    Fractional 10/11 → {impliedProbToPercent(oddsToImpliedProb('10/11', 'fractional'))?.toFixed(2)}%
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -2028,6 +2323,22 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
               <div className="card-section">
                 <h2 className="section-title">{editingBet ? 'Edit Bet' : 'Add Bet'}</h2>
                 <div>
+                  <div className="rounding-toggle-group" style={{ marginBottom: '1.5rem' }}>
+                    <button
+                      className={`rounding-toggle ${betForm.betType === 'straight' ? 'active' : ''}`}
+                      onClick={() => setBetForm({ ...betForm, betType: 'straight' })}
+                      type="button"
+                    >
+                      Straight
+                    </button>
+                    <button
+                      className={`rounding-toggle ${betForm.betType === 'parlay' ? 'active' : ''}`}
+                      onClick={() => setBetForm({ ...betForm, betType: 'parlay' })}
+                      type="button"
+                    >
+                      Parlay
+                    </button>
+                  </div>
                   <div className="form-grid">
                     <div className="form-group">
                       <label className="label">Date & Time *</label>
@@ -2050,21 +2361,23 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
                         required
                       />
                     </div>
-                    <div className="form-group">
-                      <label className="label">Market Type *</label>
-                      <select
-                        className="input"
-                        value={betForm.marketType}
-                        onChange={(e) => setBetForm({...betForm, marketType: e.target.value})}
-                        required
-                      >
-                        <option value="ML">Moneyline (ML)</option>
-                        <option value="Spread">Spread</option>
-                        <option value="Total">Total (Over/Under)</option>
-                        <option value="Prop">Prop</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
+                    {betForm.betType === 'straight' && (
+                      <div className="form-group">
+                        <label className="label">Market Type *</label>
+                        <select
+                          className="input"
+                          value={betForm.marketType}
+                          onChange={(e) => setBetForm({...betForm, marketType: e.target.value})}
+                          required
+                        >
+                          <option value="ML">Moneyline (ML)</option>
+                          <option value="Spread">Spread</option>
+                          <option value="Total">Total (Over/Under)</option>
+                          <option value="Prop">Prop</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                    )}
                     <div className="form-group">
                       <label className="label">Book / App Used *</label>
                       <select
@@ -2086,17 +2399,48 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
                         <option value="Other">Other</option>
                       </select>
                     </div>
-                    <div className="form-group">
-                      <label className="label">Odds *</label>
-                      <input
-                        type="text"
-                        className="input"
-                        placeholder="-110 or 1.9091"
-                        value={betForm.odds}
-                        onChange={(e) => setBetForm({...betForm, odds: e.target.value})}
-                        required
-                      />
-                    </div>
+                    {betForm.betType === 'straight' && (
+                      <>
+                        <div className="form-group">
+                          <label className="label">Odds Format *</label>
+                          <select
+                            className="input"
+                            value={betForm.oddsFormat}
+                            onChange={(e) => setBetForm({ ...betForm, oddsFormat: e.target.value })}
+                            required
+                          >
+                            <option value="american">American</option>
+                            <option value="decimal">Decimal</option>
+                            <option value="fractional">Fractional</option>
+                          </select>
+                        </div>
+                        <div className="form-group">
+                          <label className="label">Odds *</label>
+                          <input
+                            type="text"
+                            className="input"
+                            placeholder={getDefaultOddsValue(betForm.oddsFormat)}
+                            value={betForm.odds}
+                            onChange={(e) => setBetForm({...betForm, odds: e.target.value})}
+                            required
+                          />
+                        </div>
+                      </>
+                    )}
+                    {betForm.betType === 'parlay' && (
+                      <div className="form-group">
+                        <label className="label">Number of Legs *</label>
+                        <input
+                          type="number"
+                          className="input"
+                          min="2"
+                          max="20"
+                          value={parlayLegCount}
+                          onChange={(e) => setParlayLegCount(Math.max(2, Math.min(20, parseInt(e.target.value) || 2)))}
+                          required
+                        />
+                      </div>
+                    )}
                     <div className="form-group">
                       <label className="label">Stake ($) *</label>
                       <input
@@ -2121,8 +2465,24 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
                         <option value="Win">Win</option>
                         <option value="Loss">Loss</option>
                         <option value="Push">Push</option>
+                        <option value="Void">Void</option>
                       </select>
                     </div>
+                    {betForm.betType === 'parlay' && (
+                      <div className="form-group">
+                        <label className="label">Payout ($) *</label>
+                        <input
+                          type="number"
+                          className="input"
+                          placeholder="0.00"
+                          step="0.01"
+                          min="0"
+                          value={betForm.payout}
+                          onChange={(e) => setBetForm({ ...betForm, payout: e.target.value })}
+                          required
+                        />
+                      </div>
+                    )}
                     <div className="form-group">
                       <label className="label">Confidence (1-10)</label>
                       <div className="slider-group">
@@ -2151,10 +2511,99 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
                       />
                     </div>
                   </div>
+                  {betForm.betType === 'parlay' && (
+                    <div className="card" style={{ marginBottom: '1.5rem' }}>
+                      <div className="card-section">
+                        <h3 className="section-title" style={{ fontSize: '1rem' }}>Parlay Legs</h3>
+                        {parlayLegs.map((leg, index) => {
+                          const impliedPercent = getImpliedPercent(leg.oddsText, leg.oddsFormat)
+                          return (
+                            <div key={index} className="leg-probability-input" style={{ marginBottom: '1rem' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                <strong>Leg {index + 1}</strong>
+                                <select
+                                  className="input"
+                                  style={{ width: '120px' }}
+                                  value={leg.legResult}
+                                  onChange={(e) => updateParlayLeg(index, { legResult: e.target.value })}
+                                >
+                                  <option value="hit">Hit</option>
+                                  <option value="miss">Miss</option>
+                                  <option value="push">Push</option>
+                                  <option value="void">Void</option>
+                                </select>
+                              </div>
+                              <div className="form-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))' }}>
+                                <div className="form-group">
+                                  <label className="label">Market</label>
+                                  <input
+                                    type="text"
+                                    className="input"
+                                    value={leg.market}
+                                    onChange={(e) => updateParlayLeg(index, { market: e.target.value })}
+                                  />
+                                </div>
+                                <div className="form-group">
+                                  <label className="label">Selection</label>
+                                  <input
+                                    type="text"
+                                    className="input"
+                                    value={leg.selection}
+                                    onChange={(e) => updateParlayLeg(index, { selection: e.target.value })}
+                                  />
+                                </div>
+                                <div className="form-group">
+                                  <label className="label">Line</label>
+                                  <input
+                                    type="text"
+                                    className="input"
+                                    value={leg.line}
+                                    onChange={(e) => updateParlayLeg(index, { line: e.target.value })}
+                                  />
+                                </div>
+                                <div className="form-group">
+                                  <label className="label">Odds Format</label>
+                                  <select
+                                    className="input"
+                                    value={leg.oddsFormat}
+                                    onChange={(e) => updateParlayLeg(index, { oddsFormat: e.target.value })}
+                                  >
+                                    <option value="american">American</option>
+                                    <option value="decimal">Decimal</option>
+                                    <option value="fractional">Fractional</option>
+                                  </select>
+                                </div>
+                                <div className="form-group">
+                                  <label className="label">Odds</label>
+                                  <input
+                                    type="text"
+                                    className="input"
+                                    placeholder={getDefaultOddsValue(leg.oddsFormat)}
+                                    value={leg.oddsText}
+                                    onChange={(e) => updateParlayLeg(index, { oddsText: e.target.value })}
+                                  />
+                                </div>
+                              </div>
+                              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                Implied probability: {typeof impliedPercent === 'number' ? `${impliedPercent.toFixed(2)}%` : '—'}
+                              </div>
+                            </div>
+                          )
+                        })}
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                          Overall implied probability:{' '}
+                          {(() => {
+                            const implied = calculateParlayImpliedProb(parlayLegs)
+                            return implied ? `${(implied * 100).toFixed(4)}%` : '—'
+                          })()}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   {betFormMessage.type && (
                     <div className={betFormMessage.type === 'success' ? 'success-message' : 'error-message'} style={{ marginBottom: '1rem' }}>
                       <div>{betFormMessage.text}</div>
-                      {betFormMessage.type === 'error' && betFormMessage.text.includes('Free plan allows 5 bets') && (
+                      {betFormMessage.type === 'error' && betFormMessage.text.includes('Free plan allows') && (
                         <button 
                           className="btn" 
                           onClick={() => setActiveTab('upgrade')}
@@ -2173,11 +2622,11 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
                     <div style={{
                       marginBottom: '1rem',
                       padding: '0.75rem',
-                      backgroundColor: '#e3f2fd',
-                      border: '1px solid #2196f3',
+                      backgroundColor: 'rgba(132, 210, 246, 0.12)',
+                      border: '1px solid rgba(132, 210, 246, 0.35)',
                       borderRadius: '8px',
                       fontSize: '0.875rem',
-                      color: '#1565c0'
+                      color: 'var(--text)'
                     }}>
                       🔄 Syncing bets to server...
                     </div>
@@ -2186,8 +2635,8 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
                     <div style={{
                       marginBottom: '1rem',
                       padding: '0.75rem',
-                      backgroundColor: '#fff3cd',
-                      border: '1px solid #ffc107',
+                      backgroundColor: 'rgba(132, 210, 246, 0.12)',
+                      border: '1px solid rgba(132, 210, 246, 0.35)',
                       borderRadius: '8px',
                       fontSize: '0.875rem',
                       display: 'flex',
@@ -2237,7 +2686,7 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
                       <div style={{
                         marginTop: '0.5rem',
                         fontSize: '0.875rem',
-                        color: '#666',
+                        color: 'var(--text-secondary)',
                         fontStyle: 'italic'
                       }}>
                         Unlock first to access encrypted data.
@@ -2256,11 +2705,19 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
                             marketType: 'ML',
                             book: '',
                             odds: '',
+                            oddsFormat: 'american',
                             stake: '',
                             result: 'Win',
+                            payout: '',
                             confidence: 5,
-                            notes: ''
+                            notes: '',
+                            betType: 'straight'
                           })
+                          setParlayLegCount(2)
+                          setParlayLegs([
+                            { market: '', selection: '', line: '', oddsText: '', oddsFormat: 'american', legResult: 'hit' },
+                            { market: '', selection: '', line: '', oddsText: '', oddsFormat: 'american', legResult: 'hit' }
+                          ])
                         }}
                       >
                         Cancel
@@ -2407,7 +2864,7 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
                   <div className="bets-list">
                     {filteredBetsForList.map((bet) => {
                       const profit = calculateBetProfit(bet)
-                      const decimalOdds = parseOdds(bet.odds)
+                      const decimalOdds = getDecimalOddsForBet(bet)
                       // Check if bet is queued (pending sync)
                       const isQueued = getQueuedBets().some(q => q.id === bet.id && q.status === 'pending')
                       
@@ -2422,10 +2879,10 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
                                   <span style={{
                                     fontSize: '0.75rem',
                                     padding: '0.25rem 0.5rem',
-                                    backgroundColor: '#fff3cd',
-                                    border: '1px solid #ffc107',
+                                    backgroundColor: 'rgba(132, 210, 246, 0.12)',
+                                    border: '1px solid rgba(132, 210, 246, 0.35)',
                                     borderRadius: '4px',
-                                    color: '#856404',
+                                    color: 'var(--text)',
                                     fontWeight: '600'
                                   }}>
                                     ⏳ Pending sync
@@ -2445,9 +2902,9 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
                                   fontSize: '1rem',
                                   textTransform: 'uppercase',
                                   letterSpacing: '0.05em',
-                                  backgroundColor: bet.result === 'Win' ? 'rgba(34, 197, 94, 0.15)' : bet.result === 'Loss' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(156, 163, 175, 0.15)',
-                                  color: bet.result === 'Win' ? '#16a34a' : bet.result === 'Loss' ? '#dc2626' : '#6b7280',
-                                  border: `2px solid ${bet.result === 'Win' ? '#16a34a' : bet.result === 'Loss' ? '#dc2626' : '#6b7280'}`
+                                  backgroundColor: 'rgba(132, 210, 246, 0.12)',
+                                  color: 'var(--text)',
+                                  border: '2px solid var(--accent)'
                                 }}
                               >
                                 {bet.result}
@@ -2456,7 +2913,7 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
                                 style={{
                                   fontSize: '1.125rem',
                                   fontWeight: '600',
-                                  color: profit >= 0 ? '#16a34a' : '#dc2626'
+                                  color: 'var(--accent)'
                                 }}
                               >
                                 ${profit >= 0 ? '+' : ''}{profit.toFixed(2)}
@@ -2464,8 +2921,17 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
                             </div>
                           </div>
                           <div className="bet-details">
-                            <div>Odds: {bet.odds} {(bet.decimalOdds || decimalOdds) && `(${(bet.decimalOdds || decimalOdds).toFixed(4)})`}</div>
+                            <div>Type: {bet.betType === 'parlay' ? 'Parlay' : 'Straight'}</div>
+                            <div>
+                              Odds: {bet.odds || '—'} {(bet.decimalOdds || decimalOdds) && `(${(bet.decimalOdds || decimalOdds).toFixed(4)})`}
+                            </div>
                             <div>Stake: ${bet.stake.toFixed(2)}</div>
+                            {bet.betType === 'parlay' && (
+                              <>
+                                <div>Legs: {Array.isArray(bet.legs) ? bet.legs.length : '—'}</div>
+                                {bet.payout !== undefined && <div>Payout: ${bet.payout.toFixed(2)}</div>}
+                              </>
+                            )}
                             {bet.book && <div>Book: {bet.book}</div>}
                             <div>Confidence: {bet.confidence}/10</div>
                             {bet.notes && <div style={{ gridColumn: '1 / -1', marginTop: '0.5rem', fontStyle: 'italic' }}>{bet.notes}</div>}

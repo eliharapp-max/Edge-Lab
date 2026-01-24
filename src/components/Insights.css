@@ -16,7 +16,7 @@
 .insights-title {
   font-size: 1.75rem;
   font-weight: 600;
-  color: #1a202c;
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -28,16 +28,16 @@
 
 .time-range-label {
   font-size: 0.875rem;
-  color: #4a5568;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
 .time-range-select {
   padding: 0.5rem 0.75rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
-  background: #ffffff;
-  color: #1a202c;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   font-size: 0.875rem;
   cursor: pointer;
   outline: none;
@@ -45,21 +45,21 @@
 }
 
 .time-range-select:hover {
-  border-color: #cbd5e0;
+  border-color: var(--panel-hover);
 }
 
 .time-range-select:focus {
-  border-color: #8b5cf6;
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(132, 210, 246, 0.35);
 }
 
 .insights-empty {
   padding: 3rem;
   text-align: center;
-  color: #718096;
-  background: #f7fafc;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border-radius: 18px;
+  border: 1px solid var(--border-color);
 }
 
 .insights-section {
@@ -69,20 +69,20 @@
 .insights-section-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #1a202c;
+  color: var(--text-primary);
   margin-bottom: 1.25rem;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 2px solid var(--border-color);
 }
 
 .insights-section-title-warning {
-  border-bottom-color: #fed7d7;
-  color: #c53030;
+  border-bottom-color: var(--panel-hover);
+  color: var(--accent);
 }
 
 .insights-section-title-neutral {
-  border-bottom-color: #e2e8f0;
-  color: #4a5568;
+  border-bottom-color: var(--border-color);
+  color: var(--text-secondary);
 }
 
 .insights-grid {
@@ -92,29 +92,29 @@
 }
 
 .insight-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
   padding: 1.25rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .insight-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
 }
 
 .insight-card-good {
-  border-left: 3px solid #48bb78;
+  border-left: 3px solid var(--accent);
 }
 
 .insight-card-warning {
-  border-left: 3px solid #f56565;
+  border-left: 3px solid var(--accent);
 }
 
 .insight-card-neutral {
-  border-left: 3px solid #a0aec0;
+  border-left: 3px solid var(--panel-hover);
 }
 
 .insight-card-header {
@@ -129,7 +129,7 @@
 .insight-card-title {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #1a202c;
+  color: var(--text-primary);
   margin: 0;
   flex: 1;
   min-width: 200px;
@@ -144,7 +144,7 @@
 
 .insight-metric-label {
   font-size: 0.75rem;
-  color: #718096;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -152,26 +152,26 @@
 .insight-metric-value {
   font-size: 1rem;
   font-weight: 600;
-  color: #1a202c;
+  color: var(--text-primary);
 }
 
 .insight-card-good .insight-metric-value {
-  color: #48bb78;
+  color: var(--accent);
 }
 
 .insight-card-warning .insight-metric-value {
-  color: #f56565;
+  color: var(--accent);
 }
 
 .insight-card-message {
   font-size: 0.9375rem;
-  color: #4a5568;
+  color: var(--text-secondary);
   line-height: 1.5;
   margin: 0 0 1rem 0;
 }
 
 .insight-card-evidence {
-  background: #f7fafc;
+  background: var(--panel-hover);
   border-radius: 6px;
   padding: 0.75rem;
   margin-bottom: 1rem;
@@ -185,26 +185,26 @@
 }
 
 .evidence-item {
-  color: #4a5568;
+  color: var(--text-secondary);
 }
 
 .evidence-item strong {
-  color: #2d3748;
+  color: var(--text-primary);
   margin-right: 0.25rem;
 }
 
 .insight-card-recommendation {
   padding: 0.75rem;
-  background: #f0f4f8;
+  background: var(--panel-hover);
   border-radius: 6px;
-  border-left: 3px solid #8b5cf6;
+  border-left: 3px solid var(--accent);
   font-size: 0.875rem;
-  color: #2d3748;
+  color: var(--text-primary);
   line-height: 1.5;
 }
 
 .insight-card-recommendation strong {
-  color: #1a202c;
+  color: var(--text-primary);
 }
 
 @media (max-width: 768px) {

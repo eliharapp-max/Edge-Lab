@@ -6,9 +6,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, #f5f7fa 0%, #f0f4f8 50%, #f5f7fa 100%);
-  background-size: 200% 200%;
-  animation: gradientShift 30s ease infinite;
+  background: var(--bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -17,28 +15,14 @@
   overflow: hidden;
 }
 
-@keyframes gradientShift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
 .reset-pin-card {
-  background: #ffffff;
-  border: 1px solid rgba(139, 92, 246, 0.15);
-  border-radius: 16px;
+  background: var(--panel);
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
   padding: 2.5rem;
   max-width: 500px;
   width: 100%;
-  box-shadow: 
-    0 10px 40px rgba(0, 0, 0, 0.08),
-    0 0 0 1px rgba(139, 92, 246, 0.05);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
   animation: cardFadeIn 0.4s ease-out;
   position: relative;
   z-index: 1;
@@ -56,12 +40,12 @@
 }
 
 .reset-pin-card h2 {
-  color: #1a202c;
+  color: var(--text-primary);
   margin-bottom: 0.5rem;
 }
 
 .reset-pin-card p {
-  color: #4a5568;
+  color: var(--text-secondary);
 }
 
 /* Form Elements - Same as Auth.css */
@@ -74,17 +58,17 @@
   margin-bottom: 0.5rem;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #1a202c;
+  color: var(--text-primary);
   letter-spacing: 0.01em;
 }
 
 .input {
   width: 100%;
   padding: 0.875rem 1rem;
-  border: 1.5px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  background: #ffffff;
-  color: #1a202c;
+  background: var(--panel);
+  color: var(--text-primary);
   font-size: 1rem;
   transition: all 0.2s ease;
   outline: none;
@@ -92,20 +76,20 @@
 }
 
 .input::placeholder {
-  color: #718096;
+  color: var(--text-muted);
 }
 
 .input:focus {
-  border-color: #8b5cf6;
-  background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+  border-color: var(--accent);
+  background: var(--panel);
+  box-shadow: 0 0 0 2px rgba(132, 210, 246, 0.35);
   outline: none;
 }
 
 .input:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  background: #f7fafc;
+  background: var(--panel-hover);
 }
 
 .btn {
@@ -116,28 +100,28 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  color: #ffffff;
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);
+  color: var(--bg);
+  background: var(--accent);
+  box-shadow: 0 0 16px rgba(132, 210, 246, 0.25);
   width: 100%;
   font-family: inherit;
 }
 
 .btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #9d6af7 0%, #8b4af0 100%);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.35);
+  filter: brightness(1.05);
+  box-shadow: 0 0 20px rgba(132, 210, 246, 0.4);
   transform: translateY(-1px);
 }
 
 .btn:active:not(:disabled) {
   transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);
+  box-shadow: 0 0 12px rgba(132, 210, 246, 0.3);
 }
 
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  background: var(--accent);
   box-shadow: none;
   transform: none;
 }
@@ -152,10 +136,10 @@
 .error-message {
   margin-top: 0.75rem;
   padding: 0.75rem;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(132, 210, 246, 0.12);
+  border: 1px solid rgba(132, 210, 246, 0.35);
   border-radius: 8px;
-  color: #dc2626;
+  color: var(--accent);
   font-size: 0.875rem;
   animation: fadeIn 0.3s ease;
 }
@@ -163,10 +147,10 @@
 .success-message {
   margin-top: 0.75rem;
   padding: 0.75rem;
-  background: rgba(34, 197, 94, 0.1);
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  background: rgba(132, 210, 246, 0.12);
+  border: 1px solid rgba(132, 210, 246, 0.35);
   border-radius: 8px;
-  color: #16a34a;
+  color: var(--accent);
   font-size: 0.875rem;
   animation: fadeIn 0.3s ease;
 }

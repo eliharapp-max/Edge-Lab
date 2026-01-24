@@ -71,7 +71,7 @@
 }
 
 .recovery-key-warning {
-  background: rgba(229, 62, 62, 0.1);
+  background: rgba(132, 210, 246, 0.12);
   border: 1.5px solid var(--accent-red);
   border-radius: 8px;
   padding: 1.5rem;
@@ -102,7 +102,7 @@
 .error-message {
   margin-top: 0.75rem;
   padding: 0.75rem;
-  background: rgba(229, 62, 62, 0.1);
+  background: rgba(132, 210, 246, 0.12);
   border: 1px solid var(--accent-red);
   border-radius: 6px;
   color: var(--accent-red);

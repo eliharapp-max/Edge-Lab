@@ -343,9 +343,9 @@ function Dashboard({ bets, profileId, isPro = false, onUpgrade }) {
 
       {/* Free user upgrade prompt for limited data */}
       {!isPro && timeRange === 'all' && (
-        <div className="card" style={{ marginBottom: '2rem', background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+        <div className="card" style={{ marginBottom: '2rem', background: 'rgba(132, 210, 246, 0.08)', border: '1px solid rgba(132, 210, 246, 0.35)' }}>
           <div className="card-section">
-            <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--accent-blue)' }}>Upgrade to Pro</h3>
+            <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--accent)' }}>Upgrade to Pro</h3>
             <p style={{ margin: '0 0 1rem 0', color: 'var(--text-secondary)' }}>
               Free users can view stats for the last 14 days only. Upgrade to Pro to unlock full stats and history.
             </p>
@@ -408,11 +408,11 @@ function Dashboard({ bets, profileId, isPro = false, onUpgrade }) {
           <h3 className="section-title">Cumulative P&L</h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={cumulativeData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="pnl" stroke="var(--accent-blue)" strokeWidth={2} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(226, 232, 221, 0.2)" />
+              <XAxis dataKey="date" stroke="var(--text-muted)" />
+              <YAxis stroke="var(--text-muted)" />
+              <Tooltip contentStyle={{ backgroundColor: 'var(--panel)', border: '1px solid var(--border-color)' }} />
+              <Line type="monotone" dataKey="pnl" stroke="var(--accent)" strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -423,11 +423,11 @@ function Dashboard({ bets, profileId, isPro = false, onUpgrade }) {
           <h3 className="section-title">Daily P&L</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={dailyData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="pnl" fill="var(--accent-blue)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(226, 232, 221, 0.2)" />
+              <XAxis dataKey="date" stroke="var(--text-muted)" />
+              <YAxis stroke="var(--text-muted)" />
+              <Tooltip contentStyle={{ backgroundColor: 'var(--panel)', border: '1px solid var(--border-color)' }} />
+              <Bar dataKey="pnl" fill="var(--accent)" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -438,12 +438,12 @@ function Dashboard({ bets, profileId, isPro = false, onUpgrade }) {
           <div className="card-section">
             <h3 className="section-title">Profit by Sport/League</h3>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={sportData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="sport" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="profit" fill="var(--accent-blue)" />
+            <BarChart data={sportData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(226, 232, 221, 0.2)" />
+              <XAxis dataKey="sport" stroke="var(--text-muted)" />
+              <YAxis stroke="var(--text-muted)" />
+              <Tooltip contentStyle={{ backgroundColor: 'var(--panel)', border: '1px solid var(--border-color)' }} />
+              <Bar dataKey="profit" fill="var(--accent)" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -453,12 +453,12 @@ function Dashboard({ bets, profileId, isPro = false, onUpgrade }) {
           <div className="card-section">
             <h3 className="section-title">Profit by Market Type</h3>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={marketData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="market" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="profit" fill="var(--accent-blue)" />
+            <BarChart data={marketData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(226, 232, 221, 0.2)" />
+              <XAxis dataKey="market" stroke="var(--text-muted)" />
+              <YAxis stroke="var(--text-muted)" />
+              <Tooltip contentStyle={{ backgroundColor: 'var(--panel)', border: '1px solid var(--border-color)' }} />
+              <Bar dataKey="profit" fill="var(--accent)" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -468,12 +468,12 @@ function Dashboard({ bets, profileId, isPro = false, onUpgrade }) {
           <div className="card-section">
             <h3 className="section-title">Profit by Book/App</h3>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={bookData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="book" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="profit" fill="var(--accent-blue)" />
+            <BarChart data={bookData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(226, 232, 221, 0.2)" />
+              <XAxis dataKey="book" stroke="var(--text-muted)" />
+              <YAxis stroke="var(--text-muted)" />
+              <Tooltip contentStyle={{ backgroundColor: 'var(--panel)', border: '1px solid var(--border-color)' }} />
+              <Bar dataKey="profit" fill="var(--accent)" />
               </BarChart>
             </ResponsiveContainer>
           </div>

@@ -152,20 +152,20 @@ function Overview({ bets = [] }) {
           <div className="overview-chart">
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(226, 232, 221, 0.2)" />
                 <XAxis 
                   dataKey="date" 
-                  stroke="#718096"
+                  stroke="var(--text-muted)"
                   style={{ fontSize: '0.75rem' }}
                 />
                 <YAxis 
-                  stroke="#718096"
+                  stroke="var(--text-muted)"
                   style={{ fontSize: '0.75rem' }}
                 />
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: '#ffffff', 
-                    border: '1px solid #e2e8f0',
+                    backgroundColor: 'var(--panel)', 
+                    border: '1px solid var(--border-color)',
                     borderRadius: '6px',
                     fontSize: '0.875rem'
                   }}
@@ -173,9 +173,9 @@ function Overview({ bets = [] }) {
                 <Line 
                   type="monotone" 
                   dataKey="pnl" 
-                  stroke="#8b5cf6" 
+                  stroke="var(--accent)" 
                   strokeWidth={2}
-                  dot={{ fill: '#8b5cf6', r: 3 }}
+                  dot={{ fill: 'var(--accent)', r: 3 }}
                   activeDot={{ r: 5 }}
                 />
               </LineChart>

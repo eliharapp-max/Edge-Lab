@@ -29,27 +29,27 @@ class AppErrorBoundary extends Component {
           padding: '2rem',
           maxWidth: '800px',
           margin: '2rem auto',
-          backgroundColor: '#fee',
-          border: '2px solid #fcc',
+          backgroundColor: 'rgba(132, 210, 246, 0.12)',
+          border: '2px solid rgba(132, 210, 246, 0.4)',
           borderRadius: '8px',
           fontFamily: 'system-ui, -apple-system, sans-serif'
         }}>
-          <h1 style={{ color: '#c00', marginTop: 0 }}>⚠️ Application Error</h1>
-          <p style={{ color: '#800', fontSize: '1.1rem', marginBottom: '1rem' }}>
+          <h1 style={{ color: 'var(--text)', marginTop: 0 }}>⚠️ Application Error</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginBottom: '1rem' }}>
             An error occurred in the application. The app has been protected from crashing.
           </p>
-          <p style={{ color: '#666', marginBottom: '1rem' }}>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
             <strong>Error:</strong> {this.state.error?.message || 'Unknown error'}
           </p>
           <details style={{ marginTop: '1rem', marginBottom: '1rem' }}>
-            <summary style={{ cursor: 'pointer', color: '#666', fontSize: '0.9rem', fontWeight: '600' }}>
+            <summary style={{ cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: '600' }}>
               Show error details
             </summary>
             <pre style={{
               marginTop: '0.5rem',
               padding: '1rem',
-              backgroundColor: '#fff',
-              border: '1px solid #ccc',
+              backgroundColor: 'var(--panel)',
+              border: '1px solid var(--border-color)',
               borderRadius: '4px',
               fontSize: '0.75rem',
               overflow: 'auto',
@@ -70,8 +70,8 @@ class AppErrorBoundary extends Component {
               onClick={() => window.location.reload()}
               style={{
                 padding: '0.75rem 1.5rem',
-                backgroundColor: '#2196f3',
-                color: 'white',
+                backgroundColor: 'var(--accent)',
+                color: 'var(--bg)',
                 border: 'none',
                 borderRadius: '4px',
                 cursor: 'pointer',
@@ -86,8 +86,8 @@ class AppErrorBoundary extends Component {
               onClick={() => this.setState({ hasError: false, error: null, errorInfo: null })}
               style={{
                 padding: '0.75rem 1.5rem',
-                backgroundColor: '#666',
-                color: 'white',
+                backgroundColor: 'var(--panel)',
+                color: 'var(--text)',
                 border: 'none',
                 borderRadius: '4px',
                 cursor: 'pointer',

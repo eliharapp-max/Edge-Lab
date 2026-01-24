@@ -111,9 +111,9 @@
 .card {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 18px;
   padding: 2.5rem;
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
   transition: all 0.3s ease;
 }
 
@@ -162,8 +162,8 @@
 
 .input {
   background: var(--bg-secondary);
-  border: 1.5px solid var(--border-color);
-  border-radius: 8px;
+  border: 1px solid rgba(226, 232, 221, 0.15);
+  border-radius: 10px;
   padding: 0.875rem 1.125rem;
   font-size: 1rem;
   color: var(--text-primary);
@@ -173,8 +173,8 @@
 
 .input:focus {
   outline: none;
-  border-color: var(--accent-blue);
-  box-shadow: 0 0 0 4px rgba(49, 130, 206, 0.15);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(132, 210, 246, 0.4);
   background: var(--bg-secondary);
   transform: translateY(-1px);
 }
@@ -289,14 +289,14 @@
 }
 
 .arb-status.exists {
-  background: rgba(56, 161, 105, 0.12);
+  background: rgba(132, 210, 246, 0.12);
   border: 1.5px solid var(--accent-green);
   color: var(--accent-green);
   font-weight: 600;
 }
 
 .arb-status.none {
-  background: rgba(229, 62, 62, 0.12);
+  background: rgba(132, 210, 246, 0.12);
   border: 1.5px solid var(--accent-red);
   color: var(--accent-red);
   font-weight: 600;
@@ -317,7 +317,7 @@
 .stake-item {
   background: var(--bg-secondary);
   padding: 1.5rem;
-  border-radius: 10px;
+  border-radius: 18px;
   border: 1px solid var(--border-color);
   transition: all 0.25s ease;
 }
@@ -344,7 +344,7 @@
 .profit-display {
   margin-top: 1.5rem;
   padding: 2rem;
-  background: linear-gradient(135deg, rgba(56, 161, 105, 0.12) 0%, rgba(56, 161, 105, 0.06) 100%);
+  background: linear-gradient(135deg, rgba(132, 210, 246, 0.12) 0%, rgba(132, 210, 246, 0.06) 100%);
   border: 1.5px solid var(--accent-green);
   border-radius: 12px;
   animation: pulse 2s ease-in-out infinite;
@@ -352,10 +352,10 @@
 
 @keyframes pulse {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(56, 161, 105, 0.2);
+    box-shadow: 0 0 0 0 rgba(132, 210, 246, 0.2);
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(56, 161, 105, 0);
+    box-shadow: 0 0 0 8px rgba(132, 210, 246, 0);
   }
 }
 
@@ -411,9 +411,56 @@
 }
 
 .rounding-toggle.active {
-  background: var(--accent-blue);
-  border-color: var(--accent-blue);
-  color: white;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(19, 60, 85, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 2rem;
+}
+
+.modal-card {
+  width: min(720px, 94vw);
+  background: var(--panel);
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.15);
+  padding: 1.5rem;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.modal-table {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.modal-table-row {
+  display: grid;
+  grid-template-columns: 0.6fr 1fr 1fr 0.8fr;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  background: var(--bg-tertiary);
+  font-size: 0.9rem;
+}
+
+.modal-table-header {
+  background: var(--panel-hover);
+  font-weight: 600;
 }
 
 .rounding-impact {
@@ -429,7 +476,7 @@
 .rounding-warning {
   margin-top: 1rem;
   padding: 1rem;
-  background: rgba(229, 62, 62, 0.12);
+  background: rgba(132, 210, 246, 0.12);
   border: 1.5px solid var(--accent-red);
   border-radius: 8px;
   color: var(--accent-red);
@@ -439,13 +486,13 @@
 
 /* Buttons */
 .btn {
-  background: var(--accent-blue);
+  background: var(--accent);
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 0.75rem 1.5rem;
   font-size: 0.9375rem;
   font-weight: 500;
-  color: white;
+  color: var(--bg);
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: inherit;
@@ -456,9 +503,9 @@
 }
 
 .btn:hover {
-  background: var(--accent-blue-hover);
+  filter: brightness(1.05);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 0 16px rgba(132, 210, 246, 0.35);
 }
 
 .btn:active {
@@ -467,14 +514,14 @@
 }
 
 .btn-secondary {
-  background: var(--bg-tertiary);
+  background: transparent;
   color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--panel-hover);
 }
 
 .btn-secondary:hover {
-  background: var(--bg-secondary);
-  border-color: var(--accent-blue);
+  background: var(--panel);
+  border-color: var(--panel-hover);
 }
 
 .btn-group {
@@ -494,7 +541,7 @@
 .saved-item {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: 18px;
   padding: 1.5rem;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -605,14 +652,14 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--accent-blue);
+  background: var(--accent);
   cursor: pointer;
   border: none;
   transition: all 0.2s ease;
 }
 
 .slider::-moz-range-thumb:hover {
-  background: var(--accent-blue-hover);
+  background: var(--accent);
   transform: scale(1.1);
 }
 
@@ -625,8 +672,8 @@
 .reality-result {
   margin-top: 2rem;
   padding: 2.5rem;
-  background: linear-gradient(135deg, rgba(49, 130, 206, 0.12) 0%, rgba(49, 130, 206, 0.06) 100%);
-  border: 1.5px solid var(--accent-blue);
+  background: linear-gradient(135deg, rgba(132, 210, 246, 0.12) 0%, rgba(132, 210, 246, 0.06) 100%);
+  border: 1.5px solid var(--accent);
   border-radius: 12px;
   text-align: center;
 }
@@ -642,7 +689,7 @@
 .reality-result-value {
   font-size: 3rem;
   font-weight: 700;
-  color: var(--accent-blue);
+  color: var(--accent);
   margin-bottom: 1rem;
 }
 
@@ -662,7 +709,7 @@
 .comparison-item {
   background: var(--bg-secondary);
   padding: 1.5rem;
-  border-radius: 10px;
+  border-radius: 18px;
   border: 1px solid var(--border-color);
   text-align: center;
   transition: all 0.25s ease;
@@ -720,7 +767,7 @@
 .error-message {
   margin-top: 0.5rem;
   padding: 0.75rem;
-  background: rgba(239, 68, 68, 0.1);
+  background: rgba(132, 210, 246, 0.1);
   border: 1px solid var(--accent-red);
   border-radius: 6px;
   color: var(--accent-red);
@@ -730,7 +777,7 @@
 .success-message {
   margin-top: 0.5rem;
   padding: 0.75rem;
-  background: rgba(34, 197, 94, 0.1);
+  background: rgba(132, 210, 246, 0.1);
   border: 1px solid var(--accent-green);
   border-radius: 6px;
   color: var(--accent-green);
@@ -753,7 +800,7 @@
 .bet-item {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 10px;
+  border-radius: 18px;
   padding: 1.5rem;
   transition: all 0.25s ease;
 }
@@ -780,19 +827,19 @@
 }
 
 .bet-result.win {
-  background: rgba(56, 161, 105, 0.12);
+  background: rgba(132, 210, 246, 0.12);
   color: var(--accent-green);
   border: 1px solid var(--accent-green);
 }
 
 .bet-result.loss {
-  background: rgba(229, 62, 62, 0.12);
+  background: rgba(132, 210, 246, 0.12);
   color: var(--accent-red);
   border: 1px solid var(--accent-red);
 }
 
 .bet-result.push {
-  background: rgba(150, 150, 150, 0.12);
+  background: rgba(132, 210, 246, 0.12);
   color: var(--text-secondary);
   border: 1px solid var(--text-secondary);
 }
@@ -862,7 +909,7 @@
 
 .breakdown-item {
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: 18px;
   border: 1px solid var(--border-color);
   font-size: 0.875rem;
   transition: all 0.2s ease;
@@ -873,12 +920,12 @@
 }
 
 .breakdown-item.positive {
-  background: rgba(56, 161, 105, 0.08);
+  background: rgba(132, 210, 246, 0.08);
   border-color: var(--accent-green);
 }
 
 .breakdown-item.negative {
-  background: rgba(229, 62, 62, 0.08);
+  background: rgba(132, 210, 246, 0.08);
   border-color: var(--accent-red);
 }
 
@@ -1095,6 +1142,20 @@ textarea.input {
   animation: fadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.stat-card-value,
+.reality-result-value,
+.implied-sum-value,
+.stake-value,
+.profit-amount,
+.profit-percent,
+.flex-prob-cell,
+.bet-details,
+.flex-prob-sublabel,
+.flex-probability-table,
+.oddsInput {
+  font-variant-numeric: tabular-nums;
+}
+
 .saved-item {
   animation: fadeIn 0.3s ease;
 }
@@ -1103,7 +1164,7 @@ textarea.input {
 .stat-card {
   background: var(--bg-secondary);
   padding: 1.5rem;
-  border-radius: 10px;
+  border-radius: 18px;
   border: 1px solid var(--border-color);
   transition: all 0.25s ease;
 }

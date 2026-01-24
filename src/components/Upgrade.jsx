@@ -11,23 +11,21 @@ export default function Upgrade({ onUpgradeSuccess, refreshSubscription }) {
     setError(null)
 
     try {
-      const { data: userData, error: userError } = await supabase.auth.getUser()
-      if (userError || !userData?.user?.id) {
-        setError('Please log in to upgrade')
+      const { data: sessionData } = await supabase.auth.getSession()
+      const accessToken = sessionData?.session?.access_token
+      if (!accessToken) {
+        setError('You must be signed in to upgrade')
         setLoading(false)
         return
       }
-      const { data: sessionData } = await supabase.auth.getSession()
 
       const response = await fetch('/api/stripe/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${sessionData?.session?.access_token || ''}`,
+          Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({
-          user_id: userData.user.id,
-        }),
+        body: JSON.stringify({}),
       })
 
       if (!response.ok) {

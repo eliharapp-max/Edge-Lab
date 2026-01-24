@@ -237,7 +237,7 @@ function OddsConverter() {
           )}
 
           {/* Quick Examples */}
-          <div className="examples-section" style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid #e0e0e0' }}>
+          <div className="examples-section" style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid var(--border-color)' }}>
             <h3 className="section-subtitle">Quick Examples</h3>
             <div className="examples-grid">
               <div className="example-item">

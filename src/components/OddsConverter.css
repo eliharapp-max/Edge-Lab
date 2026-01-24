@@ -21,9 +21,9 @@
 
 .converter-panel {
   padding: 1.5rem;
-  background: #f9f9f9;
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
+  background: var(--bg-secondary);
+  border-radius: 18px;
+  border: 1px solid var(--border-color);
 }
 
 .panel-title {
@@ -31,7 +31,7 @@
   font-weight: 600;
   margin-top: 0;
   margin-bottom: 1rem;
-  color: #333;
+  color: var(--text-primary);
 }
 
 /* Fix input visibility and spacing */
@@ -45,7 +45,7 @@
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
-  color: #333;
+  color: var(--text-primary);
 }
 
 /* Wide, visible numeric inputs */
@@ -56,10 +56,10 @@
   padding: 12px 14px;
   font-size: 18px;
   line-height: 1.4;
-  color: #000 !important;
-  background: #fff !important;
-  caret-color: #000;
-  border: 1px solid #d0d0d0;
+  color: var(--text-primary) !important;
+  background: var(--bg-secondary) !important;
+  caret-color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   overflow: visible;
   text-indent: 0;
@@ -67,14 +67,14 @@
 }
 
 .oddsInput::placeholder {
-  color: #7a7a7a;
+  color: var(--text-muted);
   opacity: 1;
 }
 
 .oddsInput:focus {
   outline: none;
-  border-color: #2196f3;
-  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(132, 210, 246, 0.2);
 }
 
 /* Fallback for other inputs in converter */
@@ -82,27 +82,27 @@
   width: 100%;
   min-height: 44px;
   padding: 10px 12px;
-  background: white;
-  border: 1px solid #d0d0d0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 16px;
   line-height: 1.4;
-  color: #000;
-  caret-color: #000;
+  color: var(--text-primary);
+  caret-color: var(--text-primary);
   overflow: visible;
   text-indent: 0;
   opacity: 1;
 }
 
 .odds-converter .input:not(.oddsInput)::placeholder {
-  color: #999;
+  color: var(--text-muted);
   opacity: 1;
 }
 
 .odds-converter .input:not(.oddsInput):focus {
   outline: none;
-  border-color: #2196f3;
-  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(132, 210, 246, 0.2);
 }
 
 .result-with-copy {
@@ -114,12 +114,12 @@
 .result-value {
   flex: 1;
   padding: 10px 12px;
-  background: white;
-  border: 1px solid #d0d0d0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 16px;
   font-weight: 500;
-  color: #000;
+  color: var(--text-primary);
   min-height: 44px;
   line-height: 1.4;
   display: flex;
@@ -130,14 +130,14 @@
 .result-value-large {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .fair-probability-result {
   padding: 1rem;
-  background: #f0f7ff;
-  border: 1px solid #2196f3;
-  border-radius: 8px;
+  background: var(--panel-hover);
+  border: 1px solid var(--accent);
+  border-radius: 18px;
 }
 
 .result-card {
@@ -148,7 +148,7 @@
 
 .result-label {
   font-size: 0.875rem;
-  color: #666;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -164,7 +164,7 @@
 .examples-section {
   margin-top: 2rem;
   padding-top: 2rem;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid var(--border-color);
 }
 
 .section-subtitle {
@@ -172,7 +172,7 @@
   font-weight: 600;
   margin-top: 0;
   margin-bottom: 1rem;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .examples-grid {
@@ -183,15 +183,15 @@
 
 .example-item {
   padding: 0.75rem;
-  background: #f9f9f9;
+  background: var(--bg-secondary);
   border-radius: 4px;
   text-align: center;
   font-size: 0.95rem;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .example-item strong {
-  color: #2196f3;
+  color: var(--accent);
   font-weight: 600;
 }
 

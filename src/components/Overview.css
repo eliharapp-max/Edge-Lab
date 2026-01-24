@@ -13,7 +13,7 @@
 .overview-title {
   font-size: 1.75rem;
   font-weight: 600;
-  color: #1a202c;
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -26,16 +26,16 @@
 }
 
 .overview-metric-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
 }
 
 .metric-label {
   font-size: 0.875rem;
-  color: #718096;
+  color: var(--text-muted);
   margin-bottom: 0.5rem;
   font-weight: 500;
 }
@@ -43,31 +43,31 @@
 .metric-value {
   font-size: 1.75rem;
   font-weight: 600;
-  color: #1a202c;
+  color: var(--text-primary);
 }
 
 .metric-value.positive {
-  color: #16a34a;
+  color: var(--accent);
 }
 
 .metric-value.negative {
-  color: #dc2626;
+  color: var(--accent);
 }
 
 /* Cards */
 .overview-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
 }
 
 .overview-section-title {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #1a202c;
+  color: var(--text-primary);
   margin: 0 0 1rem 0;
 }
 
@@ -91,18 +91,18 @@
 .insight-value {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #1a202c;
+  color: var(--text-primary);
   margin-bottom: 0.5rem;
 }
 
 .insight-label {
   font-size: 0.875rem;
-  color: #718096;
+  color: var(--text-muted);
 }
 
 .insight-empty,
 .overview-empty {
-  color: #718096;
+  color: var(--text-muted);
   font-style: italic;
   padding: 2rem;
   text-align: center;
@@ -118,10 +118,11 @@
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
   gap: 1rem;
   padding: 0.75rem 0;
-  border-bottom: 2px solid #e2e8f0;
+  background: var(--panel-hover);
+  border-bottom: 2px solid var(--border-color);
   font-size: 0.875rem;
   font-weight: 600;
-  color: #4a5568;
+  color: var(--text-secondary);
 }
 
 .overview-bets-row {
@@ -129,9 +130,13 @@
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
   gap: 1rem;
   padding: 0.75rem 0;
-  border-bottom: 1px solid #f0f4f8;
+  border-bottom: 1px solid var(--border-color);
   font-size: 0.875rem;
-  color: #1a202c;
+  color: var(--text-primary);
+}
+
+.overview-bets-row:hover {
+  background: var(--panel-hover);
 }
 
 .overview-bets-row:last-child {
@@ -139,12 +144,12 @@
 }
 
 .overview-bets-row .positive {
-  color: #16a34a;
+  color: var(--accent);
   font-weight: 600;
 }
 
 .overview-bets-row .negative {
-  color: #dc2626;
+  color: var(--accent);
   font-weight: 600;
 }
 

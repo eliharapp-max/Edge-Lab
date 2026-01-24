@@ -1,13 +1,35 @@
 import { useState, useMemo } from 'react'
 import { generateInsights } from '../lib/insightsEngine'
+import { parseOdds } from '../lib/oddsUtils'
 import './Insights.css'
 
 export default function Insights({ bets = [] }) {
   const [timeRange, setTimeRange] = useState('all')
+  const [activeTab, setActiveTab] = useState('straight')
+
+  const straightBets = bets.filter(bet => bet.betType !== 'parlay')
+  const parlayBets = bets.filter(bet => bet.betType === 'parlay')
   
   const insights = useMemo(() => {
-    return generateInsights(bets, { timeRange })
-  }, [bets, timeRange])
+    const source = activeTab === 'parlay' ? [] : straightBets
+    return generateInsights(source, { timeRange })
+  }, [straightBets, timeRange, activeTab])
+
+  const summary = useMemo(() => {
+    const source = activeTab === 'parlay' ? parlayBets : straightBets
+    return calculateSummaryStats(source)
+  }, [activeTab, straightBets, parlayBets])
+
+  const parlayDistribution = useMemo(() => {
+    const buckets = { two: 0, three: 0, fourPlus: 0 }
+    parlayBets.forEach(bet => {
+      const legs = Array.isArray(bet.legs) ? bet.legs.length : 0
+      if (legs === 2) buckets.two += 1
+      else if (legs === 3) buckets.three += 1
+      else if (legs >= 4) buckets.fourPlus += 1
+    })
+    return buckets
+  }, [parlayBets])
   
   // Group insights by severity
   const goodInsights = insights.filter(i => i.severity === 'good')
@@ -18,6 +40,20 @@ export default function Insights({ bets = [] }) {
     <div className="insights-container">
       <div className="insights-header">
         <h2 className="insights-title">Insights</h2>
+        <div className="rounding-toggle-group">
+          <button
+            className={`rounding-toggle ${activeTab === 'straight' ? 'active' : ''}`}
+            onClick={() => setActiveTab('straight')}
+          >
+            Straights
+          </button>
+          <button
+            className={`rounding-toggle ${activeTab === 'parlay' ? 'active' : ''}`}
+            onClick={() => setActiveTab('parlay')}
+          >
+            Parlays
+          </button>
+        </div>
         <div className="time-range-filter">
           <label htmlFor="timeRange" className="time-range-label">Time Range:</label>
           <select
@@ -32,10 +68,50 @@ export default function Insights({ bets = [] }) {
           </select>
         </div>
       </div>
+
+      <div className="card" style={{ marginBottom: '1.5rem' }}>
+        <div className="card-section">
+          <h3 className="section-title">{activeTab === 'parlay' ? 'Parlay Summary' : 'Straight Summary'}</h3>
+          <div className="stats-grid">
+            <div className="stat-card">
+              <div className="stat-card-label">Total Bets</div>
+              <div className="stat-card-value">{summary.totalBets}</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-card-label">ROI</div>
+              <div className="stat-card-value">{summary.roi.toFixed(1)}%</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-card-label">Avg Stake</div>
+              <div className="stat-card-value">${summary.avgStake.toFixed(2)}</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-card-label">Avg Odds (Decimal)</div>
+              <div className="stat-card-value">{summary.avgOdds.toFixed(2)}</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-card-label">Win Rate</div>
+              <div className="stat-card-value">{summary.winRate.toFixed(1)}%</div>
+            </div>
+          </div>
+          {activeTab === 'parlay' && (
+            <div style={{ marginTop: '1rem' }}>
+              <h4 style={{ marginBottom: '0.5rem' }}>Parlay Size Distribution</h4>
+              <div style={{ color: 'var(--text-secondary)' }}>
+                2-leg: {parlayDistribution.two} · 3-leg: {parlayDistribution.three} · 4+: {parlayDistribution.fourPlus}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
       
       {insights.length === 0 ? (
         <div className="insights-empty">
-          <p>No insights available yet. Keep logging bets to unlock personalized insights.</p>
+          <p>
+            {activeTab === 'parlay'
+              ? 'Parlay insights will appear once you log more parlay entries.'
+              : 'No insights available yet. Keep logging bets to unlock personalized insights.'}
+          </p>
         </div>
       ) : (
         <>
@@ -128,5 +204,48 @@ function InsightCard({ insight }) {
       )}
     </div>
   )
+}
+
+function calculateProfit(bet) {
+  if (bet.profit !== undefined) return bet.profit
+  const stake = bet.stake || 0
+  if (bet.betType === 'parlay') {
+    if (bet.result === 'Win' && bet.payout !== undefined) {
+      return bet.payout - stake
+    }
+    if (bet.result === 'Loss') return -stake
+    return 0
+  }
+  const decimalOdds = bet.decimalOdds || parseOdds(bet.odds, bet.oddsFormat)
+  if (!decimalOdds) return 0
+  if (bet.result === 'Win') return stake * (decimalOdds - 1)
+  if (bet.result === 'Loss') return -stake
+  return 0
+}
+
+function getDecimalOddsForBet(bet) {
+  if (bet.decimalOdds) return bet.decimalOdds
+  if (bet.betType === 'parlay' && bet.impliedProb) {
+    return 1 / bet.impliedProb
+  }
+  return parseOdds(bet.odds, bet.oddsFormat)
+}
+
+function calculateSummaryStats(bets) {
+  const totalBets = bets.length
+  if (!totalBets) {
+    return { totalBets: 0, roi: 0, avgStake: 0, avgOdds: 0, winRate: 0 }
+  }
+
+  const totalStake = bets.reduce((sum, bet) => sum + (bet.stake || 0), 0)
+  const totalProfit = bets.reduce((sum, bet) => sum + calculateProfit(bet), 0)
+  const wins = bets.filter(b => b.result === 'Win').length
+  const losses = bets.filter(b => b.result === 'Loss').length
+  const winRate = (wins + losses) > 0 ? (wins / (wins + losses)) * 100 : 0
+  const roi = totalStake > 0 ? (totalProfit / totalStake) * 100 : 0
+  const avgStake = totalStake / totalBets
+  const avgOdds = bets.reduce((sum, bet) => sum + (getDecimalOddsForBet(bet) || 0), 0) / totalBets
+
+  return { totalBets, roi, avgStake, avgOdds, winRate }
 }
 
