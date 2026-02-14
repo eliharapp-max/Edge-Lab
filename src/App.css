@@ -746,25 +746,6 @@
   color: var(--text-primary);
 }
 
-/* Upsell Container */
-.upsell-container {
-  padding: 3rem 2rem;
-  text-align: center;
-}
-
-.upsell-container h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 1rem 0;
-}
-
-.upsell-container p {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  margin: 0 0 2rem 0;
-}
-
 /* Footer */
 .footer {
   margin-top: 4rem;

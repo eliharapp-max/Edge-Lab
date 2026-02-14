@@ -81,20 +81,17 @@ import Overview from './components/Overview'
 import Dashboard from './components/Dashboard'
 import OddsConverter from './components/OddsConverter'
 import Insights from './components/Insights'
-import Upgrade, { UpgradeSuccess, UpgradeCancel } from './components/Upgrade'
 import { supabase } from './lib/supabase'
 import { deriveKey, encryptData, decryptData, generateSalt, hashPIN } from './utils/crypto'
 import { parseOdds, oddsToImpliedProb, impliedProbToPercent, clampNumber } from './lib/oddsUtils'
 import { getBestOddsForLeg } from './lib/oddsProvider'
 import { loadBets, addBet, updateBet, deleteBet, saveBets } from './lib/betsStore'
 import { enqueueBet, getQueuedBets, getQueuedBetData, markBetSynced, removeBet as removeQueuedBet, updateQueuedBet } from './lib/betQueue'
-import { useSubscription } from './lib/useSubscription'
-import { getBetsLast7DaysCount } from './lib/subscriptionHelpers'
 
 function App() {
   const [checking, setChecking] = useState(true)
   const [session, setSession] = useState(null)
-  const [authReady, setAuthReady] = useState(false) // Auth is ready only after session check + subscription fires
+  const [authReady, setAuthReady] = useState(false) // Auth is ready after session check
   const [currentProfile, setCurrentProfile] = useState(null)
   const [isLocked, setIsLocked] = useState(false)
   const [currentPin, setCurrentPin] = useState(null) // Store PIN in memory for encryption operations
@@ -113,9 +110,6 @@ function App() {
   const [bets, setBets] = useState([])
   const [queuedBets, setQueuedBets] = useState([]) // Local pending bets
 
-  // Subscription state
-  const subscription = useSubscription(session?.user?.id || null)
-  const { isPro, refreshSubscription } = subscription
   const [syncing, setSyncing] = useState(false) // Sync status
   const [editingBet, setEditingBet] = useState(null)
   const [betFormMessage, setBetFormMessage] = useState({ type: null, text: '' }) // 'success' | 'error' | null
@@ -157,7 +151,6 @@ function App() {
   // Force login screen as first screen - check session on mount
   useEffect(() => {
     let sessionChecked = false
-    let subscriptionFired = false
 
     const checkSession = async () => {
       const { data: { session: currentSession } } = await supabase.auth.getSession()
@@ -185,17 +178,14 @@ function App() {
         setCurrentProfile(null)
       }
 
-      // Mark auth as ready if subscription has also fired
-      if (subscriptionFired) {
-        setAuthReady(true)
-      }
+      setAuthReady(true)
     }
     checkSession()
 
     // Subscribe to auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
       setSession(currentSession ?? null)
-      subscriptionFired = true
+      setAuthReady(true)
       
       if (event === 'SIGNED_OUT') {
         setCurrentProfile(null)
@@ -1483,19 +1473,6 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
           }
         }
       } else {
-        // New bet: Check 7-day rolling limit for free users
-        if (!isPro) {
-          const allBetsForCounting = [...bets, ...getQueuedBetData()]
-          const betsLast7Days = getBetsLast7DaysCount(allBetsForCounting)
-          if (betsLast7Days >= 50) {
-            setBetFormMessage({ 
-              type: 'error', 
-              text: 'Free plan allows 50 bets per rolling 7 days. Upgrade for unlimited journaling.' 
-            })
-            return
-          }
-        }
-
         // New bet: always enqueue locally first (immediate save, sync later)
         try {
           const queuedBet = enqueueBet(betPayload)
@@ -1772,29 +1749,6 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
     return <ResetPin />
   }
 
-  // Handle upgrade routes (before auth check, but after session exists)
-  const pathname = window.location.pathname
-  if (pathname === '/upgrade/success') {
-    refreshSubscription()
-    return (
-      <UpgradeSuccess 
-        onContinue={() => {
-          window.history.pushState({}, '', '/')
-          setActiveTab('dashboard')
-        }} 
-      />
-    )
-  }
-  if (pathname === '/upgrade/cancel') {
-    return (
-      <UpgradeCancel 
-        onBack={() => {
-          window.history.pushState({}, '', '/')
-        }} 
-      />
-    )
-  }
-
   // Force login screen as first screen
   if (checking) {
     return (
@@ -1892,12 +1846,6 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
             onClick={() => setActiveTab('insights')}
           >
             Insights
-          </button>
-          <button
-            className={`tab ${activeTab === 'upgrade' ? 'active' : ''}`}
-            onClick={() => setActiveTab('upgrade')}
-          >
-            Upgrade
           </button>
         </div>
 
@@ -2603,15 +2551,6 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
                   {betFormMessage.type && (
                     <div className={betFormMessage.type === 'success' ? 'success-message' : 'error-message'} style={{ marginBottom: '1rem' }}>
                       <div>{betFormMessage.text}</div>
-                      {betFormMessage.type === 'error' && betFormMessage.text.includes('Free plan allows') && (
-                        <button 
-                          className="btn" 
-                          onClick={() => setActiveTab('upgrade')}
-                          style={{ marginTop: '0.75rem', width: 'auto' }}
-                        >
-                          Upgrade
-                        </button>
-                      )}
                     </div>
                   )}
                   
@@ -3051,34 +2990,13 @@ Profit: $${arbResult.worstProfit.toFixed(2)} (${arbResult.worstProfitPercent.toF
             <Dashboard 
               bets={bets} 
               profileId={currentProfile?.id} 
-              isPro={isPro}
-              onUpgrade={() => setActiveTab('upgrade')}
             />
           </div>
         )}
 
         {activeTab === 'insights' && (
           <div className="card tab-content">
-            {isPro ? (
-              <Insights bets={bets} />
-            ) : (
-              <div className="upsell-container">
-                <h2>Insights - Pro Feature</h2>
-                <p>Upgrade to Pro to unlock personalized insights and analytics.</p>
-                <button 
-                  className="btn" 
-                  onClick={() => setActiveTab('upgrade')}
-                >
-                  Upgrade to Pro
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {activeTab === 'upgrade' && (
-          <div className="tab-content">
-            <Upgrade refreshSubscription={refreshSubscription} />
+            <Insights bets={bets} />
           </div>
         )}
       </main>

@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MarketType {
+  moneyline
+  spread
+  total
+}
+
+enum SelectionType {
+  home
+  away
+  over
+  under
+}
+
+model SportEvent {
+  id              String      @id @default(cuid())
+  sportKey        String
+  league          String?
+  homeTeam        String
+  awayTeam        String
+  startTime       DateTime
+  externalEventId String      @unique
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  odds            MarketOdds[]
+  trackedPicks    TrackedPick[]
+
+  @@index([sportKey, startTime])
+}
+
+model MarketOdds {
+  id           String        @id @default(cuid())
+  eventId      String
+  marketType   MarketType
+  selection    SelectionType
+  bookKey      String
+  oddsAmerican Int
+  oddsDecimal  Float
+  lastUpdated  DateTime
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  event        SportEvent    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, marketType, selection, bookKey])
+  @@index([eventId, marketType, selection])
+  @@index([lastUpdated])
+}
+
+model TrackedPick {
+  id         String        @id @default(cuid())
+  eventId    String
+  marketType MarketType
+  selection  SelectionType
+  createdAt  DateTime      @default(now())
+
+  event      SportEvent    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, marketType, selection])
+  @@index([createdAt])
+}

@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import './Dashboard.css'
 
-function Dashboard({ bets, profileId, isPro = false, onUpgrade }) {
+function Dashboard({ bets, profileId }) {
   const [timeRange, setTimeRange] = useState('all')
   const [customDateFrom, setCustomDateFrom] = useState('')
   const [customDateTo, setCustomDateTo] = useState('')
@@ -14,35 +14,22 @@ function Dashboard({ bets, profileId, isPro = false, onUpgrade }) {
 
     // Apply time range filter
     const now = new Date()
-    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
-    
     if (timeRange === 'last7') {
       const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
       filtered = filtered.filter(b => new Date(b.timestamp || b.date) >= sevenDaysAgo)
     } else if (timeRange === 'last30') {
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-      // For free users, cap at 14 days
-      const cutoffDate = !isPro ? Math.max(thirtyDaysAgo, fourteenDaysAgo) : thirtyDaysAgo
-      filtered = filtered.filter(b => new Date(b.timestamp || b.date) >= cutoffDate)
+      filtered = filtered.filter(b => new Date(b.timestamp || b.date) >= thirtyDaysAgo)
     } else if (timeRange === 'thismonth') {
       const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-      // For free users, cap at 14 days
-      const cutoffDate = !isPro ? Math.max(firstOfMonth, fourteenDaysAgo) : firstOfMonth
-      filtered = filtered.filter(b => new Date(b.timestamp || b.date) >= cutoffDate)
+      filtered = filtered.filter(b => new Date(b.timestamp || b.date) >= firstOfMonth)
     } else if (timeRange === 'custom') {
       if (customDateFrom) {
         const fromDate = new Date(customDateFrom)
-        // For free users, cap custom from date at 14 days ago
-        const cutoffDate = !isPro ? Math.max(fromDate, fourteenDaysAgo) : fromDate
-        filtered = filtered.filter(b => new Date(b.timestamp || b.date) >= cutoffDate)
+        filtered = filtered.filter(b => new Date(b.timestamp || b.date) >= fromDate)
       }
       if (customDateTo) {
         filtered = filtered.filter(b => new Date(b.timestamp || b.date) <= new Date(customDateTo + 'T23:59:59'))
-      }
-    } else if (timeRange === 'all') {
-      // For free users, cap "all time" at 14 days
-      if (!isPro) {
-        filtered = filtered.filter(b => new Date(b.timestamp || b.date) >= fourteenDaysAgo)
       }
     }
 
@@ -53,7 +40,7 @@ function Dashboard({ bets, profileId, isPro = false, onUpgrade }) {
     }
 
     return filtered
-  }, [bets, timeRange, customDateFrom, customDateTo, betCountWindow, isPro])
+  }, [bets, timeRange, customDateFrom, customDateTo, betCountWindow])
 
   // Calculate KPIs
   const kpis = useMemo(() => {
@@ -294,11 +281,11 @@ function Dashboard({ bets, profileId, isPro = false, onUpgrade }) {
                 value={timeRange}
                 onChange={(e) => setTimeRange(e.target.value)}
               >
-                <option value="all">{isPro ? 'All Time' : 'Last 14 Days (Free)'}</option>
+                <option value="all">All Time</option>
                 <option value="last7">Last 7 Days</option>
-                <option value="last30">{isPro ? 'Last 30 Days' : 'Last 14 Days (Free)'}</option>
-                <option value="thismonth">{isPro ? 'This Month' : 'Last 14 Days (Free)'}</option>
-                <option value="custom">Custom Range {!isPro ? '(Max 14 days)' : ''}</option>
+                <option value="last30">Last 30 Days</option>
+                <option value="thismonth">This Month</option>
+                <option value="custom">Custom Range</option>
               </select>
             </div>
             {timeRange === 'custom' && (
@@ -340,23 +327,6 @@ function Dashboard({ bets, profileId, isPro = false, onUpgrade }) {
           </div>
         </div>
       </div>
-
-      {/* Free user upgrade prompt for limited data */}
-      {!isPro && timeRange === 'all' && (
-        <div className="card" style={{ marginBottom: '2rem', background: 'rgba(132, 210, 246, 0.08)', border: '1px solid rgba(132, 210, 246, 0.35)' }}>
-          <div className="card-section">
-            <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--accent)' }}>Upgrade to Pro</h3>
-            <p style={{ margin: '0 0 1rem 0', color: 'var(--text-secondary)' }}>
-              Free users can view stats for the last 14 days only. Upgrade to Pro to unlock full stats and history.
-            </p>
-            {onUpgrade && (
-              <button className="btn" onClick={onUpgrade} style={{ width: 'auto' }}>
-                Upgrade to Pro
-              </button>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* KPI Cards */}
       <div className="kpi-grid">

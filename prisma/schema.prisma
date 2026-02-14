@@ -1,0 +1,67 @@
+// Prisma schema for Edge Lab Market feature
+// Connects to Supabase Postgres - multi-source (Polymarket + Kalshi)
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["public", "auth"]
+}
+
+model Market {
+  id         String   @id @default(cuid())
+  source     String   // POLYMARKET | KALSHI
+  externalId String   @map("external_id")
+  title      String
+  url        String?
+  category   String?
+  status     String   @default("active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  snapshots  MarketSnapshot[]
+  signals    MarketSignal[]
+
+  @@unique([source, externalId])
+  @@index([source, status])
+  @@map("markets")
+  @@schema("public")
+}
+
+model MarketSnapshot {
+  id         String   @id @default(cuid())
+  marketId   String   @map("market_id")
+  market     Market   @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  ts         DateTime @map("ts")
+  probability Float?
+  priceYes   Float?   @map("price_yes")
+  priceNo    Float?   @map("price_no")
+  volume     Float?
+  liquidity  Float?
+  spread     Float?
+  raw        Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([marketId, ts])
+  @@map("market_snapshots")
+  @@schema("public")
+}
+
+model MarketSignal {
+  id          String   @id @default(cuid())
+  marketId    String   @map("market_id")
+  market      Market   @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  ts          DateTime @map("ts")
+  score       Int      // 0-100
+  confidence  String   // LOW | MED | HIGH
+  explanation String?
+  features    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([marketId, ts])
+  @@map("market_signals")
+  @@schema("public")
+}
