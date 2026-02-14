@@ -1,5 +1,6 @@
 import { prisma } from "../prisma.js";
 import { computeFeatures } from "./features.js";
+import { toJsonInput } from "./ingest.js";
 
 const SIGNAL_COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes
 
@@ -43,7 +44,7 @@ export async function scoreAllMarkets(options?: { activeOnly?: boolean }): Promi
           score,
           confidence,
           explanation,
-          features: features as object,
+          features: toJsonInput(features as Record<string, unknown>),
         },
       });
       marketsScored++;

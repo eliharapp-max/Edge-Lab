@@ -1,7 +1,14 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "../prisma.js";
 import type { NormalizedMarket, IngestResult } from "./types.js";
 import { fetchMarkets as fetchPolymarket } from "./sources/polymarket.js";
 import { fetchMarkets as fetchKalshi } from "./sources/kalshi.js";
+
+export function toJsonInput(obj: Record<string, unknown>): Prisma.InputJsonObject {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([, v]) => v !== undefined)
+  ) as Prisma.InputJsonObject;
+}
 
 const LIMIT_PER_SOURCE = 100;
 
@@ -47,7 +54,7 @@ async function ingestSource(
             volume: m.volume ?? null,
             liquidity: m.liquidity ?? null,
             spread: m.spread ?? null,
-            raw: m.raw ?? undefined,
+            raw: m.raw ? toJsonInput(m.raw) : undefined,
           },
         });
         count++;
