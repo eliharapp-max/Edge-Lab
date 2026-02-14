@@ -1,7 +1,8 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "../prisma.js";
 import { computeFeatures } from "./features.js";
-import { toJsonInput } from "./ingest.js";
 
+const asJson = (v: unknown) => v as Prisma.InputJsonValue;
 const SIGNAL_COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes
 
 export type ScoreAllResult = {
@@ -44,7 +45,7 @@ export async function scoreAllMarkets(options?: { activeOnly?: boolean }): Promi
           score,
           confidence,
           explanation,
-          features: toJsonInput(features as Record<string, unknown>),
+          features: asJson(features),
         },
       });
       marketsScored++;
